@@ -1,0 +1,1301 @@
+<html>
+<head>
+<title>mongoose.js</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #6aab73;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #7a7e85;}
+.s4 { color: #cf8e6d;}
+.s5 { color: #42c3d4;}
+.s6 { color: #5f826b; font-style: italic;}
+.s7 { color: #67a37c; font-style: italic;}
+.s8 { color: #2aacb8;}
+.ln { color: #4b5059; font-weight: normal; font-style: normal; }
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+mongoose.js</font>
+</center></td></tr></table>
+<pre><a name="l1"><span class="ln">1    </span></a><span class="s0">'use strict'</span><span class="s1">;</span>
+<a name="l2"><span class="ln">2    </span></a>
+<a name="l3"><span class="ln">3    </span></a><span class="s3">/*! 
+<a name="l4"><span class="ln">4    </span></a> * Module dependencies. 
+<a name="l5"><span class="ln">5    </span></a> */</span>
+<a name="l6"><span class="ln">6    </span></a>
+<a name="l7"><span class="ln">7    </span></a><span class="s4">const </span><span class="s2">Document </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'./document'</span><span class="s1">);</span>
+<a name="l8"><span class="ln">8    </span></a><span class="s4">const </span><span class="s2">EventEmitter </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'events'</span><span class="s1">).</span><span class="s2">EventEmitter</span><span class="s1">;</span>
+<a name="l9"><span class="ln">9    </span></a><span class="s4">const </span><span class="s2">Kareem </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'kareem'</span><span class="s1">);</span>
+<a name="l10"><span class="ln">10   </span></a><span class="s4">const </span><span class="s2">Schema </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'./schema'</span><span class="s1">);</span>
+<a name="l11"><span class="ln">11   </span></a><span class="s4">const </span><span class="s2">SchemaType </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'./schemaType'</span><span class="s1">);</span>
+<a name="l12"><span class="ln">12   </span></a><span class="s4">const </span><span class="s2">SchemaTypes </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'./schema/index'</span><span class="s1">);</span>
+<a name="l13"><span class="ln">13   </span></a><span class="s4">const </span><span class="s2">VirtualType </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'./virtualType'</span><span class="s1">);</span>
+<a name="l14"><span class="ln">14   </span></a><span class="s4">const </span><span class="s2">STATES </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'./connectionState'</span><span class="s1">);</span>
+<a name="l15"><span class="ln">15   </span></a><span class="s4">const </span><span class="s2">VALID_OPTIONS </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'./validOptions'</span><span class="s1">);</span>
+<a name="l16"><span class="ln">16   </span></a><span class="s4">const </span><span class="s2">Types </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'./types'</span><span class="s1">);</span>
+<a name="l17"><span class="ln">17   </span></a><span class="s4">const </span><span class="s2">Query </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'./query'</span><span class="s1">);</span>
+<a name="l18"><span class="ln">18   </span></a><span class="s4">const </span><span class="s2">Model </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'./model'</span><span class="s1">);</span>
+<a name="l19"><span class="ln">19   </span></a><span class="s4">const </span><span class="s2">applyPlugins </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'./helpers/schema/applyPlugins'</span><span class="s1">);</span>
+<a name="l20"><span class="ln">20   </span></a><span class="s4">const </span><span class="s2">builtinPlugins </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'./plugins'</span><span class="s1">);</span>
+<a name="l21"><span class="ln">21   </span></a><span class="s4">const </span><span class="s2">driver </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'./driver'</span><span class="s1">);</span>
+<a name="l22"><span class="ln">22   </span></a><span class="s4">const </span><span class="s2">legacyPluralize </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'./helpers/pluralize'</span><span class="s1">);</span>
+<a name="l23"><span class="ln">23   </span></a><span class="s4">const </span><span class="s2">utils </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'./utils'</span><span class="s1">);</span>
+<a name="l24"><span class="ln">24   </span></a><span class="s4">const </span><span class="s2">pkg </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'../package.json'</span><span class="s1">);</span>
+<a name="l25"><span class="ln">25   </span></a><span class="s4">const </span><span class="s2">cast </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'./cast'</span><span class="s1">);</span>
+<a name="l26"><span class="ln">26   </span></a>
+<a name="l27"><span class="ln">27   </span></a><span class="s4">const </span><span class="s2">Aggregate </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'./aggregate'</span><span class="s1">);</span>
+<a name="l28"><span class="ln">28   </span></a><span class="s4">const </span><span class="s2">trusted </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'./helpers/query/trusted'</span><span class="s1">).</span><span class="s2">trusted</span><span class="s1">;</span>
+<a name="l29"><span class="ln">29   </span></a><span class="s4">const </span><span class="s2">sanitizeFilter </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'./helpers/query/sanitizeFilter'</span><span class="s1">);</span>
+<a name="l30"><span class="ln">30   </span></a><span class="s4">const </span><span class="s2">isBsonType </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'./helpers/isBsonType'</span><span class="s1">);</span>
+<a name="l31"><span class="ln">31   </span></a><span class="s4">const </span><span class="s2">MongooseError </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'./error/mongooseError'</span><span class="s1">);</span>
+<a name="l32"><span class="ln">32   </span></a><span class="s4">const </span><span class="s2">SetOptionError </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'./error/setOptionError'</span><span class="s1">);</span>
+<a name="l33"><span class="ln">33   </span></a><span class="s4">const </span><span class="s2">applyEmbeddedDiscriminators </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'./helpers/discriminator/applyEmbeddedDiscriminators'</span><span class="s1">);</span>
+<a name="l34"><span class="ln">34   </span></a>
+<a name="l35"><span class="ln">35   </span></a><span class="s4">const </span><span class="s2">defaultMongooseSymbol </span><span class="s1">= </span><span class="s2">Symbol</span><span class="s1">.</span><span class="s2">for</span><span class="s1">(</span><span class="s0">'mongoose:default'</span><span class="s1">);</span>
+<a name="l36"><span class="ln">36   </span></a>
+<a name="l37"><span class="ln">37   </span></a><span class="s2">require</span><span class="s1">(</span><span class="s0">'./helpers/printJestWarning'</span><span class="s1">);</span>
+<a name="l38"><span class="ln">38   </span></a>
+<a name="l39"><span class="ln">39   </span></a><span class="s4">const </span><span class="s2">objectIdHexRegexp </span><span class="s1">= </span><span class="s5">/^[0-9A-Fa-f]{24}$/</span><span class="s1">;</span>
+<a name="l40"><span class="ln">40   </span></a>
+<a name="l41"><span class="ln">41   </span></a><span class="s6">/**</span>
+<a name="l42"><span class="ln">42   </span></a> <span class="s6">* Mongoose constructor.</span>
+<a name="l43"><span class="ln">43   </span></a> <span class="s6">*</span>
+<a name="l44"><span class="ln">44   </span></a> <span class="s6">* The exports object of the `mongoose` module is an instance of this class.</span>
+<a name="l45"><span class="ln">45   </span></a> <span class="s6">* Most apps will only use this one instance.</span>
+<a name="l46"><span class="ln">46   </span></a> <span class="s6">*</span>
+<a name="l47"><span class="ln">47   </span></a> <span class="s6">* #### Example:</span>
+<a name="l48"><span class="ln">48   </span></a> <span class="s6">*</span>
+<a name="l49"><span class="ln">49   </span></a> <span class="s6">*     const mongoose = require('mongoose');</span>
+<a name="l50"><span class="ln">50   </span></a> <span class="s6">*     mongoose instanceof mongoose.Mongoose; // true</span>
+<a name="l51"><span class="ln">51   </span></a> <span class="s6">*</span>
+<a name="l52"><span class="ln">52   </span></a> <span class="s6">*     // Create a new Mongoose instance with its own `connect()`, `set()`, `model()`, etc.</span>
+<a name="l53"><span class="ln">53   </span></a> <span class="s6">*     const m = new mongoose.Mongoose();</span>
+<a name="l54"><span class="ln">54   </span></a> <span class="s6">*</span>
+<a name="l55"><span class="ln">55   </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l56"><span class="ln">56   </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Object} options see [`Mongoose#set()` docs](https://mongoosejs.com/docs/api/mongoose.html#Mongoose.prototype.set())</span>
+<a name="l57"><span class="ln">57   </span></a> <span class="s6">*/</span>
+<a name="l58"><span class="ln">58   </span></a><span class="s4">function </span><span class="s2">Mongoose</span><span class="s1">(</span><span class="s2">options</span><span class="s1">) {</span>
+<a name="l59"><span class="ln">59   </span></a>  <span class="s4">this</span><span class="s1">.</span><span class="s2">connections </span><span class="s1">= [];</span>
+<a name="l60"><span class="ln">60   </span></a>  <span class="s4">this</span><span class="s1">.</span><span class="s2">nextConnectionId </span><span class="s1">= </span><span class="s8">0</span><span class="s1">;</span>
+<a name="l61"><span class="ln">61   </span></a>  <span class="s4">this</span><span class="s1">.</span><span class="s2">models </span><span class="s1">= {};</span>
+<a name="l62"><span class="ln">62   </span></a>  <span class="s4">this</span><span class="s1">.</span><span class="s2">events </span><span class="s1">= </span><span class="s4">new </span><span class="s2">EventEmitter</span><span class="s1">();</span>
+<a name="l63"><span class="ln">63   </span></a>  <span class="s4">this</span><span class="s1">.</span><span class="s2">__driver </span><span class="s1">= </span><span class="s2">driver</span><span class="s1">.</span><span class="s2">get</span><span class="s1">();</span>
+<a name="l64"><span class="ln">64   </span></a>  <span class="s3">// default global options</span>
+<a name="l65"><span class="ln">65   </span></a>  <span class="s4">this</span><span class="s1">.</span><span class="s2">options </span><span class="s1">= </span><span class="s2">Object</span><span class="s1">.</span><span class="s2">assign</span><span class="s1">({</span>
+<a name="l66"><span class="ln">66   </span></a>    <span class="s2">pluralization</span><span class="s1">: </span><span class="s4">true</span><span class="s1">,</span>
+<a name="l67"><span class="ln">67   </span></a>    <span class="s2">autoIndex</span><span class="s1">: </span><span class="s4">true</span><span class="s1">,</span>
+<a name="l68"><span class="ln">68   </span></a>    <span class="s2">autoCreate</span><span class="s1">: </span><span class="s4">true</span><span class="s1">,</span>
+<a name="l69"><span class="ln">69   </span></a>    <span class="s2">autoSearchIndex</span><span class="s1">: </span><span class="s4">false</span>
+<a name="l70"><span class="ln">70   </span></a>  <span class="s1">}, </span><span class="s2">options</span><span class="s1">);</span>
+<a name="l71"><span class="ln">71   </span></a>  <span class="s4">const </span><span class="s2">createInitialConnection </span><span class="s1">= </span><span class="s2">utils</span><span class="s1">.</span><span class="s2">getOption</span><span class="s1">(</span><span class="s0">'createInitialConnection'</span><span class="s1">, </span><span class="s4">this</span><span class="s1">.</span><span class="s2">options</span><span class="s1">);</span>
+<a name="l72"><span class="ln">72   </span></a>  <span class="s4">if </span><span class="s1">(</span><span class="s2">createInitialConnection </span><span class="s1">== </span><span class="s4">null </span><span class="s1">|| </span><span class="s2">createInitialConnection</span><span class="s1">) {</span>
+<a name="l73"><span class="ln">73   </span></a>    <span class="s4">const </span><span class="s2">conn </span><span class="s1">= </span><span class="s4">this</span><span class="s1">.</span><span class="s2">createConnection</span><span class="s1">(); </span><span class="s3">// default connection</span>
+<a name="l74"><span class="ln">74   </span></a>    <span class="s2">conn</span><span class="s1">.</span><span class="s2">models </span><span class="s1">= </span><span class="s4">this</span><span class="s1">.</span><span class="s2">models</span><span class="s1">;</span>
+<a name="l75"><span class="ln">75   </span></a>  <span class="s1">}</span>
+<a name="l76"><span class="ln">76   </span></a>
+<a name="l77"><span class="ln">77   </span></a>  <span class="s4">if </span><span class="s1">(</span><span class="s4">this</span><span class="s1">.</span><span class="s2">options</span><span class="s1">.</span><span class="s2">pluralization</span><span class="s1">) {</span>
+<a name="l78"><span class="ln">78   </span></a>    <span class="s4">this</span><span class="s1">.</span><span class="s2">_pluralize </span><span class="s1">= </span><span class="s2">legacyPluralize</span><span class="s1">;</span>
+<a name="l79"><span class="ln">79   </span></a>  <span class="s1">}</span>
+<a name="l80"><span class="ln">80   </span></a>
+<a name="l81"><span class="ln">81   </span></a>  <span class="s3">// If a user creates their own Mongoose instance, give them a separate copy</span>
+<a name="l82"><span class="ln">82   </span></a>  <span class="s3">// of the `Schema` constructor so they get separate custom types. (gh-6933)</span>
+<a name="l83"><span class="ln">83   </span></a>  <span class="s4">if </span><span class="s1">(!</span><span class="s2">options </span><span class="s1">|| !</span><span class="s2">options</span><span class="s1">[</span><span class="s2">defaultMongooseSymbol</span><span class="s1">]) {</span>
+<a name="l84"><span class="ln">84   </span></a>    <span class="s4">const </span><span class="s2">_this </span><span class="s1">= </span><span class="s4">this</span><span class="s1">;</span>
+<a name="l85"><span class="ln">85   </span></a>    <span class="s4">this</span><span class="s1">.</span><span class="s2">Schema </span><span class="s1">= </span><span class="s4">function</span><span class="s1">() {</span>
+<a name="l86"><span class="ln">86   </span></a>      <span class="s4">this</span><span class="s1">.</span><span class="s2">base </span><span class="s1">= </span><span class="s2">_this</span><span class="s1">;</span>
+<a name="l87"><span class="ln">87   </span></a>      <span class="s4">return </span><span class="s2">Schema</span><span class="s1">.</span><span class="s2">apply</span><span class="s1">(</span><span class="s4">this</span><span class="s1">, </span><span class="s2">arguments</span><span class="s1">);</span>
+<a name="l88"><span class="ln">88   </span></a>    <span class="s1">};</span>
+<a name="l89"><span class="ln">89   </span></a>    <span class="s4">this</span><span class="s1">.</span><span class="s2">Schema</span><span class="s1">.</span><span class="s2">prototype </span><span class="s1">= </span><span class="s2">Object</span><span class="s1">.</span><span class="s2">create</span><span class="s1">(</span><span class="s2">Schema</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">);</span>
+<a name="l90"><span class="ln">90   </span></a>
+<a name="l91"><span class="ln">91   </span></a>    <span class="s2">Object</span><span class="s1">.</span><span class="s2">assign</span><span class="s1">(</span><span class="s4">this</span><span class="s1">.</span><span class="s2">Schema</span><span class="s1">, </span><span class="s2">Schema</span><span class="s1">);</span>
+<a name="l92"><span class="ln">92   </span></a>    <span class="s4">this</span><span class="s1">.</span><span class="s2">Schema</span><span class="s1">.</span><span class="s2">base </span><span class="s1">= </span><span class="s4">this</span><span class="s1">;</span>
+<a name="l93"><span class="ln">93   </span></a>    <span class="s4">this</span><span class="s1">.</span><span class="s2">Schema</span><span class="s1">.</span><span class="s2">Types </span><span class="s1">= </span><span class="s2">Object</span><span class="s1">.</span><span class="s2">assign</span><span class="s1">({}, </span><span class="s2">Schema</span><span class="s1">.</span><span class="s2">Types</span><span class="s1">);</span>
+<a name="l94"><span class="ln">94   </span></a>  <span class="s1">} </span><span class="s4">else </span><span class="s1">{</span>
+<a name="l95"><span class="ln">95   </span></a>    <span class="s3">// Hack to work around babel's strange behavior with</span>
+<a name="l96"><span class="ln">96   </span></a>    <span class="s3">// `import mongoose, { Schema } from 'mongoose'`. Because `Schema` is not</span>
+<a name="l97"><span class="ln">97   </span></a>    <span class="s3">// an own property of a Mongoose global, Schema will be undefined. See gh-5648</span>
+<a name="l98"><span class="ln">98   </span></a>    <span class="s4">for </span><span class="s1">(</span><span class="s4">const </span><span class="s2">key of </span><span class="s1">[</span><span class="s0">'Schema'</span><span class="s1">, </span><span class="s0">'model'</span><span class="s1">]) {</span>
+<a name="l99"><span class="ln">99   </span></a>      <span class="s4">this</span><span class="s1">[</span><span class="s2">key</span><span class="s1">] = </span><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">[</span><span class="s2">key</span><span class="s1">];</span>
+<a name="l100"><span class="ln">100  </span></a>    <span class="s1">}</span>
+<a name="l101"><span class="ln">101  </span></a>  <span class="s1">}</span>
+<a name="l102"><span class="ln">102  </span></a>  <span class="s4">this</span><span class="s1">.</span><span class="s2">Schema</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">base </span><span class="s1">= </span><span class="s4">this</span><span class="s1">;</span>
+<a name="l103"><span class="ln">103  </span></a>
+<a name="l104"><span class="ln">104  </span></a>  <span class="s2">Object</span><span class="s1">.</span><span class="s2">defineProperty</span><span class="s1">(</span><span class="s4">this</span><span class="s1">, </span><span class="s0">'plugins'</span><span class="s1">, {</span>
+<a name="l105"><span class="ln">105  </span></a>    <span class="s2">configurable</span><span class="s1">: </span><span class="s4">false</span><span class="s1">,</span>
+<a name="l106"><span class="ln">106  </span></a>    <span class="s2">enumerable</span><span class="s1">: </span><span class="s4">true</span><span class="s1">,</span>
+<a name="l107"><span class="ln">107  </span></a>    <span class="s2">writable</span><span class="s1">: </span><span class="s4">false</span><span class="s1">,</span>
+<a name="l108"><span class="ln">108  </span></a>    <span class="s2">value</span><span class="s1">: </span><span class="s2">Object</span><span class="s1">.</span><span class="s2">values</span><span class="s1">(</span><span class="s2">builtinPlugins</span><span class="s1">).</span><span class="s2">map</span><span class="s1">(</span><span class="s2">plugin </span><span class="s1">=&gt; ([</span><span class="s2">plugin</span><span class="s1">, { </span><span class="s2">deduplicate</span><span class="s1">: </span><span class="s4">true </span><span class="s1">}]))</span>
+<a name="l109"><span class="ln">109  </span></a>  <span class="s1">});</span>
+<a name="l110"><span class="ln">110  </span></a><span class="s1">}</span>
+<a name="l111"><span class="ln">111  </span></a>
+<a name="l112"><span class="ln">112  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">cast </span><span class="s1">= </span><span class="s2">cast</span><span class="s1">;</span>
+<a name="l113"><span class="ln">113  </span></a><span class="s6">/**</span>
+<a name="l114"><span class="ln">114  </span></a> <span class="s6">* Expose connection states for user-land</span>
+<a name="l115"><span class="ln">115  </span></a> <span class="s6">*</span>
+<a name="l116"><span class="ln">116  </span></a> <span class="s6">* </span><span class="s7">@memberOf </span><span class="s6">Mongoose</span>
+<a name="l117"><span class="ln">117  </span></a> <span class="s6">* </span><span class="s7">@property </span><span class="s6">STATES</span>
+<a name="l118"><span class="ln">118  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l119"><span class="ln">119  </span></a> <span class="s6">*/</span>
+<a name="l120"><span class="ln">120  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">STATES </span><span class="s1">= </span><span class="s2">STATES</span><span class="s1">;</span>
+<a name="l121"><span class="ln">121  </span></a>
+<a name="l122"><span class="ln">122  </span></a><span class="s6">/**</span>
+<a name="l123"><span class="ln">123  </span></a> <span class="s6">* Expose connection states for user-land</span>
+<a name="l124"><span class="ln">124  </span></a> <span class="s6">*</span>
+<a name="l125"><span class="ln">125  </span></a> <span class="s6">* </span><span class="s7">@memberOf </span><span class="s6">Mongoose</span>
+<a name="l126"><span class="ln">126  </span></a> <span class="s6">* </span><span class="s7">@property </span><span class="s6">ConnectionStates</span>
+<a name="l127"><span class="ln">127  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l128"><span class="ln">128  </span></a> <span class="s6">*/</span>
+<a name="l129"><span class="ln">129  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">ConnectionStates </span><span class="s1">= </span><span class="s2">STATES</span><span class="s1">;</span>
+<a name="l130"><span class="ln">130  </span></a>
+<a name="l131"><span class="ln">131  </span></a><span class="s6">/**</span>
+<a name="l132"><span class="ln">132  </span></a> <span class="s6">* Object with `get()` and `set()` containing the underlying driver this Mongoose instance</span>
+<a name="l133"><span class="ln">133  </span></a> <span class="s6">* uses to communicate with the database. A driver is a Mongoose-specific interface that defines functions</span>
+<a name="l134"><span class="ln">134  </span></a> <span class="s6">* like `find()`.</span>
+<a name="l135"><span class="ln">135  </span></a> <span class="s6">*</span>
+<a name="l136"><span class="ln">136  </span></a> <span class="s6">* </span><span class="s7">@deprecated</span>
+<a name="l137"><span class="ln">137  </span></a> <span class="s6">* </span><span class="s7">@memberOf </span><span class="s6">Mongoose</span>
+<a name="l138"><span class="ln">138  </span></a> <span class="s6">* </span><span class="s7">@property </span><span class="s6">driver</span>
+<a name="l139"><span class="ln">139  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l140"><span class="ln">140  </span></a> <span class="s6">*/</span>
+<a name="l141"><span class="ln">141  </span></a>
+<a name="l142"><span class="ln">142  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">driver </span><span class="s1">= </span><span class="s2">driver</span><span class="s1">;</span>
+<a name="l143"><span class="ln">143  </span></a>
+<a name="l144"><span class="ln">144  </span></a><span class="s6">/**</span>
+<a name="l145"><span class="ln">145  </span></a> <span class="s6">* Overwrites the current driver used by this Mongoose instance. A driver is a</span>
+<a name="l146"><span class="ln">146  </span></a> <span class="s6">* Mongoose-specific interface that defines functions like `find()`.</span>
+<a name="l147"><span class="ln">147  </span></a> <span class="s6">*</span>
+<a name="l148"><span class="ln">148  </span></a> <span class="s6">* </span><span class="s7">@memberOf </span><span class="s6">Mongoose</span>
+<a name="l149"><span class="ln">149  </span></a> <span class="s6">* </span><span class="s7">@method </span><span class="s6">setDriver</span>
+<a name="l150"><span class="ln">150  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l151"><span class="ln">151  </span></a> <span class="s6">*/</span>
+<a name="l152"><span class="ln">152  </span></a>
+<a name="l153"><span class="ln">153  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">setDriver </span><span class="s1">= </span><span class="s4">function </span><span class="s2">setDriver</span><span class="s1">(</span><span class="s2">driver</span><span class="s1">) {</span>
+<a name="l154"><span class="ln">154  </span></a>  <span class="s4">const </span><span class="s2">_mongoose </span><span class="s1">= </span><span class="s4">this instanceof </span><span class="s2">Mongoose </span><span class="s1">? </span><span class="s4">this </span><span class="s1">: </span><span class="s2">mongoose</span><span class="s1">;</span>
+<a name="l155"><span class="ln">155  </span></a>
+<a name="l156"><span class="ln">156  </span></a>  <span class="s4">if </span><span class="s1">(</span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">__driver </span><span class="s1">=== </span><span class="s2">driver</span><span class="s1">) {</span>
+<a name="l157"><span class="ln">157  </span></a>    <span class="s4">return </span><span class="s2">_mongoose</span><span class="s1">;</span>
+<a name="l158"><span class="ln">158  </span></a>  <span class="s1">}</span>
+<a name="l159"><span class="ln">159  </span></a>
+<a name="l160"><span class="ln">160  </span></a>  <span class="s4">const </span><span class="s2">openConnection </span><span class="s1">= </span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">connections </span><span class="s1">&amp;&amp; </span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">connections</span><span class="s1">.</span><span class="s2">find</span><span class="s1">(</span><span class="s2">conn </span><span class="s1">=&gt; </span><span class="s2">conn</span><span class="s1">.</span><span class="s2">readyState </span><span class="s1">!== </span><span class="s2">STATES</span><span class="s1">.</span><span class="s2">disconnected</span><span class="s1">);</span>
+<a name="l161"><span class="ln">161  </span></a>  <span class="s4">if </span><span class="s1">(</span><span class="s2">openConnection</span><span class="s1">) {</span>
+<a name="l162"><span class="ln">162  </span></a>    <span class="s4">const </span><span class="s2">msg </span><span class="s1">= </span><span class="s0">'Cannot modify Mongoose driver if a connection is already open. ' </span><span class="s1">+</span>
+<a name="l163"><span class="ln">163  </span></a>      <span class="s0">'Call `mongoose.disconnect()` before modifying the driver'</span><span class="s1">;</span>
+<a name="l164"><span class="ln">164  </span></a>    <span class="s4">throw new </span><span class="s2">MongooseError</span><span class="s1">(</span><span class="s2">msg</span><span class="s1">);</span>
+<a name="l165"><span class="ln">165  </span></a>  <span class="s1">}</span>
+<a name="l166"><span class="ln">166  </span></a>  <span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">__driver </span><span class="s1">= </span><span class="s2">driver</span><span class="s1">;</span>
+<a name="l167"><span class="ln">167  </span></a>
+<a name="l168"><span class="ln">168  </span></a>  <span class="s4">const </span><span class="s2">Connection </span><span class="s1">= </span><span class="s2">driver</span><span class="s1">.</span><span class="s2">Connection</span><span class="s1">;</span>
+<a name="l169"><span class="ln">169  </span></a>  <span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">connections </span><span class="s1">= [</span><span class="s4">new </span><span class="s2">Connection</span><span class="s1">(</span><span class="s2">_mongoose</span><span class="s1">)];</span>
+<a name="l170"><span class="ln">170  </span></a>  <span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">connections</span><span class="s1">[</span><span class="s8">0</span><span class="s1">].</span><span class="s2">models </span><span class="s1">= </span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">models</span><span class="s1">;</span>
+<a name="l171"><span class="ln">171  </span></a>
+<a name="l172"><span class="ln">172  </span></a>  <span class="s4">return </span><span class="s2">_mongoose</span><span class="s1">;</span>
+<a name="l173"><span class="ln">173  </span></a><span class="s1">};</span>
+<a name="l174"><span class="ln">174  </span></a>
+<a name="l175"><span class="ln">175  </span></a><span class="s6">/**</span>
+<a name="l176"><span class="ln">176  </span></a> <span class="s6">* Sets mongoose options</span>
+<a name="l177"><span class="ln">177  </span></a> <span class="s6">*</span>
+<a name="l178"><span class="ln">178  </span></a> <span class="s6">* `key` can be used a object to set multiple options at once.</span>
+<a name="l179"><span class="ln">179  </span></a> <span class="s6">* If a error gets thrown for one option, other options will still be evaluated.</span>
+<a name="l180"><span class="ln">180  </span></a> <span class="s6">*</span>
+<a name="l181"><span class="ln">181  </span></a> <span class="s6">* #### Example:</span>
+<a name="l182"><span class="ln">182  </span></a> <span class="s6">*</span>
+<a name="l183"><span class="ln">183  </span></a> <span class="s6">*     mongoose.set('test', value) // sets the 'test' option to `value`</span>
+<a name="l184"><span class="ln">184  </span></a> <span class="s6">*</span>
+<a name="l185"><span class="ln">185  </span></a> <span class="s6">*     mongoose.set('debug', true) // enable logging collection methods + arguments to the console/file</span>
+<a name="l186"><span class="ln">186  </span></a> <span class="s6">*</span>
+<a name="l187"><span class="ln">187  </span></a> <span class="s6">*     mongoose.set('debug', function(collectionName, methodName, ...methodArgs) {}); // use custom function to log collection methods + arguments</span>
+<a name="l188"><span class="ln">188  </span></a> <span class="s6">*</span>
+<a name="l189"><span class="ln">189  </span></a> <span class="s6">*     mongoose.set({ debug: true, autoIndex: false }); // set multiple options at once</span>
+<a name="l190"><span class="ln">190  </span></a> <span class="s6">*</span>
+<a name="l191"><span class="ln">191  </span></a> <span class="s6">* Currently supported options are:</span>
+<a name="l192"><span class="ln">192  </span></a> <span class="s6">* - `allowDiskUse`: Set to `true` to set `allowDiskUse` to true to all aggregation operations by default.</span>
+<a name="l193"><span class="ln">193  </span></a> <span class="s6">* - `applyPluginsToChildSchemas`: `true` by default. Set to false to skip applying global plugins to child schemas</span>
+<a name="l194"><span class="ln">194  </span></a> <span class="s6">* - `applyPluginsToDiscriminators`: `false` by default. Set to true to apply global plugins to discriminator schemas. This typically isn't necessary because plugins are applied to the base schema and discriminators copy all middleware, methods, statics, and properties from the base schema.</span>
+<a name="l195"><span class="ln">195  </span></a> <span class="s6">* - `autoCreate`: Set to `true` to make Mongoose call [`Model.createCollection()`](https://mongoosejs.com/docs/api/model.html#Model.createCollection()) automatically when you create a model with `mongoose.model()` or `conn.model()`. This is useful for testing transactions, change streams, and other features that require the collection to exist.</span>
+<a name="l196"><span class="ln">196  </span></a> <span class="s6">* - `autoIndex`: `true` by default. Set to false to disable automatic index creation for all models associated with this Mongoose instance.</span>
+<a name="l197"><span class="ln">197  </span></a> <span class="s6">* - `bufferCommands`: enable/disable mongoose's buffering mechanism for all connections and models</span>
+<a name="l198"><span class="ln">198  </span></a> <span class="s6">* - `bufferTimeoutMS`: If bufferCommands is on, this option sets the maximum amount of time Mongoose buffering will wait before throwing an error. If not specified, Mongoose will use 10000 (10 seconds).</span>
+<a name="l199"><span class="ln">199  </span></a> <span class="s6">* - `cloneSchemas`: `false` by default. Set to `true` to `clone()` all schemas before compiling into a model.</span>
+<a name="l200"><span class="ln">200  </span></a> <span class="s6">* - `debug`: If `true`, prints the operations mongoose sends to MongoDB to the console. If a writable stream is passed, it will log to that stream, without colorization. If a callback function is passed, it will receive the collection name, the method name, then all arguments passed to the method. For example, if you wanted to replicate the default logging, you could output from the callback `Mongoose: ${collectionName}.${methodName}(${methodArgs.join(', ')})`.</span>
+<a name="l201"><span class="ln">201  </span></a> <span class="s6">* - `id`: If `true`, adds a `id` virtual to all schemas unless overwritten on a per-schema basis.</span>
+<a name="l202"><span class="ln">202  </span></a> <span class="s6">* - `timestamps.createdAt.immutable`: `true` by default. If `false`, it will change the `createdAt` field to be [`immutable: false`](https://mongoosejs.com/docs/api/schematype.html#SchemaType.prototype.immutable) which means you can update the `createdAt`</span>
+<a name="l203"><span class="ln">203  </span></a> <span class="s6">* - `maxTimeMS`: If set, attaches [maxTimeMS](https://www.mongodb.com/docs/manual/reference/operator/meta/maxTimeMS/) to every query</span>
+<a name="l204"><span class="ln">204  </span></a> <span class="s6">* - `objectIdGetter`: `true` by default. Mongoose adds a getter to MongoDB ObjectId's called `_id` that returns `this` for convenience with populate. Set this to false to remove the getter.</span>
+<a name="l205"><span class="ln">205  </span></a> <span class="s6">* - `overwriteModels`: Set to `true` to default to overwriting models with the same name when calling `mongoose.model()`, as opposed to throwing an `OverwriteModelError`.</span>
+<a name="l206"><span class="ln">206  </span></a> <span class="s6">* - `returnOriginal`: If `false`, changes the default `returnOriginal` option to `findOneAndUpdate()`, `findByIdAndUpdate`, and `findOneAndReplace()` to false. This is equivalent to setting the `new` option to `true` for `findOneAndX()` calls by default. Read our [`findOneAndUpdate()` tutorial](https://mongoosejs.com/docs/tutorials/findoneandupdate.html) for more information.</span>
+<a name="l207"><span class="ln">207  </span></a> <span class="s6">* - `runValidators`: `false` by default. Set to true to enable [update validators](https://mongoosejs.com/docs/validation.html#update-validators) for all validators by default.</span>
+<a name="l208"><span class="ln">208  </span></a> <span class="s6">* - `sanitizeFilter`: `false` by default. Set to true to enable the [sanitization of the query filters](https://mongoosejs.com/docs/api/mongoose.html#Mongoose.prototype.sanitizeFilter()) against query selector injection attacks by wrapping any nested objects that have a property whose name starts with `$` in a `$eq`.</span>
+<a name="l209"><span class="ln">209  </span></a> <span class="s6">* - `selectPopulatedPaths`: `true` by default. Set to false to opt out of Mongoose adding all fields that you `populate()` to your `select()`. The schema-level option `selectPopulatedPaths` overwrites this one.</span>
+<a name="l210"><span class="ln">210  </span></a> <span class="s6">* - `strict`: `true` by default, may be `false`, `true`, or `'throw'`. Sets the default strict mode for schemas.</span>
+<a name="l211"><span class="ln">211  </span></a> <span class="s6">* - `strictQuery`: `false` by default. May be `false`, `true`, or `'throw'`. Sets the default [strictQuery](https://mongoosejs.com/docs/guide.html#strictQuery) mode for schemas.</span>
+<a name="l212"><span class="ln">212  </span></a> <span class="s6">* - `toJSON`: `{ transform: true, flattenDecimals: true }` by default. Overwrites default objects to [`toJSON()`](https://mongoosejs.com/docs/api/document.html#Document.prototype.toJSON()), for determining how Mongoose documents get serialized by `JSON.stringify()`</span>
+<a name="l213"><span class="ln">213  </span></a> <span class="s6">* - `toObject`: `{ transform: true, flattenDecimals: true }` by default. Overwrites default objects to [`toObject()`](https://mongoosejs.com/docs/api/document.html#Document.prototype.toObject())</span>
+<a name="l214"><span class="ln">214  </span></a> <span class="s6">*</span>
+<a name="l215"><span class="ln">215  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{String|Object} key The name of the option or a object of multiple key-value pairs</span>
+<a name="l216"><span class="ln">216  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{String|Function|Boolean} value The value of the option, unused if &quot;key&quot; is a object</span>
+<a name="l217"><span class="ln">217  </span></a> <span class="s6">* </span><span class="s7">@returns </span><span class="s6">{Mongoose} The used Mongoose instnace</span>
+<a name="l218"><span class="ln">218  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l219"><span class="ln">219  </span></a> <span class="s6">*/</span>
+<a name="l220"><span class="ln">220  </span></a>
+<a name="l221"><span class="ln">221  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">set </span><span class="s1">= </span><span class="s4">function</span><span class="s1">(</span><span class="s2">key</span><span class="s1">, </span><span class="s2">value</span><span class="s1">) {</span>
+<a name="l222"><span class="ln">222  </span></a>  <span class="s4">const </span><span class="s2">_mongoose </span><span class="s1">= </span><span class="s4">this instanceof </span><span class="s2">Mongoose </span><span class="s1">? </span><span class="s4">this </span><span class="s1">: </span><span class="s2">mongoose</span><span class="s1">;</span>
+<a name="l223"><span class="ln">223  </span></a>
+<a name="l224"><span class="ln">224  </span></a>  <span class="s4">if </span><span class="s1">(</span><span class="s2">arguments</span><span class="s1">.</span><span class="s2">length </span><span class="s1">=== </span><span class="s8">1 </span><span class="s1">&amp;&amp; </span><span class="s4">typeof </span><span class="s2">key </span><span class="s1">!== </span><span class="s0">'object'</span><span class="s1">) {</span>
+<a name="l225"><span class="ln">225  </span></a>    <span class="s4">if </span><span class="s1">(</span><span class="s2">VALID_OPTIONS</span><span class="s1">.</span><span class="s2">indexOf</span><span class="s1">(</span><span class="s2">key</span><span class="s1">) === -</span><span class="s8">1</span><span class="s1">) {</span>
+<a name="l226"><span class="ln">226  </span></a>      <span class="s4">const </span><span class="s2">error </span><span class="s1">= </span><span class="s4">new </span><span class="s2">SetOptionError</span><span class="s1">();</span>
+<a name="l227"><span class="ln">227  </span></a>      <span class="s2">error</span><span class="s1">.</span><span class="s2">addError</span><span class="s1">(</span><span class="s2">key</span><span class="s1">, </span><span class="s4">new </span><span class="s2">SetOptionError</span><span class="s1">.</span><span class="s2">SetOptionInnerError</span><span class="s1">(</span><span class="s2">key</span><span class="s1">));</span>
+<a name="l228"><span class="ln">228  </span></a>      <span class="s4">throw </span><span class="s2">error</span><span class="s1">;</span>
+<a name="l229"><span class="ln">229  </span></a>    <span class="s1">}</span>
+<a name="l230"><span class="ln">230  </span></a>
+<a name="l231"><span class="ln">231  </span></a>    <span class="s4">return </span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">options</span><span class="s1">[</span><span class="s2">key</span><span class="s1">];</span>
+<a name="l232"><span class="ln">232  </span></a>  <span class="s1">}</span>
+<a name="l233"><span class="ln">233  </span></a>
+<a name="l234"><span class="ln">234  </span></a>  <span class="s4">let </span><span class="s2">options </span><span class="s1">= {};</span>
+<a name="l235"><span class="ln">235  </span></a>
+<a name="l236"><span class="ln">236  </span></a>  <span class="s4">if </span><span class="s1">(</span><span class="s2">arguments</span><span class="s1">.</span><span class="s2">length </span><span class="s1">=== </span><span class="s8">2</span><span class="s1">) {</span>
+<a name="l237"><span class="ln">237  </span></a>    <span class="s2">options </span><span class="s1">= { [</span><span class="s2">key</span><span class="s1">]: </span><span class="s2">value </span><span class="s1">};</span>
+<a name="l238"><span class="ln">238  </span></a>  <span class="s1">}</span>
+<a name="l239"><span class="ln">239  </span></a>
+<a name="l240"><span class="ln">240  </span></a>  <span class="s4">if </span><span class="s1">(</span><span class="s2">arguments</span><span class="s1">.</span><span class="s2">length </span><span class="s1">=== </span><span class="s8">1 </span><span class="s1">&amp;&amp; </span><span class="s4">typeof </span><span class="s2">key </span><span class="s1">=== </span><span class="s0">'object'</span><span class="s1">) {</span>
+<a name="l241"><span class="ln">241  </span></a>    <span class="s2">options </span><span class="s1">= </span><span class="s2">key</span><span class="s1">;</span>
+<a name="l242"><span class="ln">242  </span></a>  <span class="s1">}</span>
+<a name="l243"><span class="ln">243  </span></a>
+<a name="l244"><span class="ln">244  </span></a>  <span class="s3">// array for errors to collect all errors for all key-value pairs, like &quot;.validate&quot;</span>
+<a name="l245"><span class="ln">245  </span></a>  <span class="s4">let </span><span class="s2">error </span><span class="s1">= </span><span class="s2">undefined</span><span class="s1">;</span>
+<a name="l246"><span class="ln">246  </span></a>
+<a name="l247"><span class="ln">247  </span></a>  <span class="s4">for </span><span class="s1">(</span><span class="s4">const </span><span class="s1">[</span><span class="s2">optionKey</span><span class="s1">, </span><span class="s2">optionValue</span><span class="s1">] </span><span class="s2">of Object</span><span class="s1">.</span><span class="s2">entries</span><span class="s1">(</span><span class="s2">options</span><span class="s1">)) {</span>
+<a name="l248"><span class="ln">248  </span></a>    <span class="s4">if </span><span class="s1">(</span><span class="s2">VALID_OPTIONS</span><span class="s1">.</span><span class="s2">indexOf</span><span class="s1">(</span><span class="s2">optionKey</span><span class="s1">) === -</span><span class="s8">1</span><span class="s1">) {</span>
+<a name="l249"><span class="ln">249  </span></a>      <span class="s4">if </span><span class="s1">(!</span><span class="s2">error</span><span class="s1">) {</span>
+<a name="l250"><span class="ln">250  </span></a>        <span class="s2">error </span><span class="s1">= </span><span class="s4">new </span><span class="s2">SetOptionError</span><span class="s1">();</span>
+<a name="l251"><span class="ln">251  </span></a>      <span class="s1">}</span>
+<a name="l252"><span class="ln">252  </span></a>      <span class="s2">error</span><span class="s1">.</span><span class="s2">addError</span><span class="s1">(</span><span class="s2">optionKey</span><span class="s1">, </span><span class="s4">new </span><span class="s2">SetOptionError</span><span class="s1">.</span><span class="s2">SetOptionInnerError</span><span class="s1">(</span><span class="s2">optionKey</span><span class="s1">));</span>
+<a name="l253"><span class="ln">253  </span></a>      <span class="s4">continue</span><span class="s1">;</span>
+<a name="l254"><span class="ln">254  </span></a>    <span class="s1">}</span>
+<a name="l255"><span class="ln">255  </span></a>
+<a name="l256"><span class="ln">256  </span></a>    <span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">options</span><span class="s1">[</span><span class="s2">optionKey</span><span class="s1">] = </span><span class="s2">optionValue</span><span class="s1">;</span>
+<a name="l257"><span class="ln">257  </span></a>
+<a name="l258"><span class="ln">258  </span></a>    <span class="s4">if </span><span class="s1">(</span><span class="s2">optionKey </span><span class="s1">=== </span><span class="s0">'objectIdGetter'</span><span class="s1">) {</span>
+<a name="l259"><span class="ln">259  </span></a>      <span class="s4">if </span><span class="s1">(</span><span class="s2">optionValue</span><span class="s1">) {</span>
+<a name="l260"><span class="ln">260  </span></a>        <span class="s2">Object</span><span class="s1">.</span><span class="s2">defineProperty</span><span class="s1">(</span><span class="s2">mongoose</span><span class="s1">.</span><span class="s2">Types</span><span class="s1">.</span><span class="s2">ObjectId</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">, </span><span class="s0">'_id'</span><span class="s1">, {</span>
+<a name="l261"><span class="ln">261  </span></a>          <span class="s2">enumerable</span><span class="s1">: </span><span class="s4">false</span><span class="s1">,</span>
+<a name="l262"><span class="ln">262  </span></a>          <span class="s2">configurable</span><span class="s1">: </span><span class="s4">true</span><span class="s1">,</span>
+<a name="l263"><span class="ln">263  </span></a>          <span class="s2">get</span><span class="s1">: </span><span class="s4">function</span><span class="s1">() {</span>
+<a name="l264"><span class="ln">264  </span></a>            <span class="s4">return this</span><span class="s1">;</span>
+<a name="l265"><span class="ln">265  </span></a>          <span class="s1">}</span>
+<a name="l266"><span class="ln">266  </span></a>        <span class="s1">});</span>
+<a name="l267"><span class="ln">267  </span></a>      <span class="s1">} </span><span class="s4">else </span><span class="s1">{</span>
+<a name="l268"><span class="ln">268  </span></a>        <span class="s4">delete </span><span class="s2">mongoose</span><span class="s1">.</span><span class="s2">Types</span><span class="s1">.</span><span class="s2">ObjectId</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">_id</span><span class="s1">;</span>
+<a name="l269"><span class="ln">269  </span></a>      <span class="s1">}</span>
+<a name="l270"><span class="ln">270  </span></a>    <span class="s1">}</span>
+<a name="l271"><span class="ln">271  </span></a>  <span class="s1">}</span>
+<a name="l272"><span class="ln">272  </span></a>
+<a name="l273"><span class="ln">273  </span></a>  <span class="s4">if </span><span class="s1">(</span><span class="s2">error</span><span class="s1">) {</span>
+<a name="l274"><span class="ln">274  </span></a>    <span class="s4">throw </span><span class="s2">error</span><span class="s1">;</span>
+<a name="l275"><span class="ln">275  </span></a>  <span class="s1">}</span>
+<a name="l276"><span class="ln">276  </span></a>
+<a name="l277"><span class="ln">277  </span></a>  <span class="s4">return </span><span class="s2">_mongoose</span><span class="s1">;</span>
+<a name="l278"><span class="ln">278  </span></a><span class="s1">};</span>
+<a name="l279"><span class="ln">279  </span></a>
+<a name="l280"><span class="ln">280  </span></a><span class="s6">/**</span>
+<a name="l281"><span class="ln">281  </span></a> <span class="s6">* Gets mongoose options</span>
+<a name="l282"><span class="ln">282  </span></a> <span class="s6">*</span>
+<a name="l283"><span class="ln">283  </span></a> <span class="s6">* #### Example:</span>
+<a name="l284"><span class="ln">284  </span></a> <span class="s6">*</span>
+<a name="l285"><span class="ln">285  </span></a> <span class="s6">*     mongoose.get('test') // returns the 'test' value</span>
+<a name="l286"><span class="ln">286  </span></a> <span class="s6">*</span>
+<a name="l287"><span class="ln">287  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{String} key</span>
+<a name="l288"><span class="ln">288  </span></a> <span class="s6">* </span><span class="s7">@method </span><span class="s6">get</span>
+<a name="l289"><span class="ln">289  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l290"><span class="ln">290  </span></a> <span class="s6">*/</span>
+<a name="l291"><span class="ln">291  </span></a>
+<a name="l292"><span class="ln">292  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">get </span><span class="s1">= </span><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">set</span><span class="s1">;</span>
+<a name="l293"><span class="ln">293  </span></a>
+<a name="l294"><span class="ln">294  </span></a><span class="s6">/**</span>
+<a name="l295"><span class="ln">295  </span></a> <span class="s6">* Creates a Connection instance.</span>
+<a name="l296"><span class="ln">296  </span></a> <span class="s6">*</span>
+<a name="l297"><span class="ln">297  </span></a> <span class="s6">* Each `connection` instance maps to a single database. This method is helpful when managing multiple db connections.</span>
+<a name="l298"><span class="ln">298  </span></a> <span class="s6">*</span>
+<a name="l299"><span class="ln">299  </span></a> <span class="s6">*</span>
+<a name="l300"><span class="ln">300  </span></a> <span class="s6">* _Options passed take precedence over options included in connection strings._</span>
+<a name="l301"><span class="ln">301  </span></a> <span class="s6">*</span>
+<a name="l302"><span class="ln">302  </span></a> <span class="s6">* #### Example:</span>
+<a name="l303"><span class="ln">303  </span></a> <span class="s6">*</span>
+<a name="l304"><span class="ln">304  </span></a> <span class="s6">*     // with mongodb:// URI</span>
+<a name="l305"><span class="ln">305  </span></a> <span class="s6">*     db = mongoose.createConnection('mongodb://user:pass@127.0.0.1:port/database');</span>
+<a name="l306"><span class="ln">306  </span></a> <span class="s6">*</span>
+<a name="l307"><span class="ln">307  </span></a> <span class="s6">*     // and options</span>
+<a name="l308"><span class="ln">308  </span></a> <span class="s6">*     const opts = { db: { native_parser: true }}</span>
+<a name="l309"><span class="ln">309  </span></a> <span class="s6">*     db = mongoose.createConnection('mongodb://user:pass@127.0.0.1:port/database', opts);</span>
+<a name="l310"><span class="ln">310  </span></a> <span class="s6">*</span>
+<a name="l311"><span class="ln">311  </span></a> <span class="s6">*     // replica sets</span>
+<a name="l312"><span class="ln">312  </span></a> <span class="s6">*     db = mongoose.createConnection('mongodb://user:pass@127.0.0.1:port,anotherhost:port,yetanother:port/database');</span>
+<a name="l313"><span class="ln">313  </span></a> <span class="s6">*</span>
+<a name="l314"><span class="ln">314  </span></a> <span class="s6">*     // and options</span>
+<a name="l315"><span class="ln">315  </span></a> <span class="s6">*     const opts = { replset: { strategy: 'ping', rs_name: 'testSet' }}</span>
+<a name="l316"><span class="ln">316  </span></a> <span class="s6">*     db = mongoose.createConnection('mongodb://user:pass@127.0.0.1:port,anotherhost:port,yetanother:port/database', opts);</span>
+<a name="l317"><span class="ln">317  </span></a> <span class="s6">*</span>
+<a name="l318"><span class="ln">318  </span></a> <span class="s6">*     // initialize now, connect later</span>
+<a name="l319"><span class="ln">319  </span></a> <span class="s6">*     db = mongoose.createConnection();</span>
+<a name="l320"><span class="ln">320  </span></a> <span class="s6">*     db.openUri('127.0.0.1', 'database', port, [opts]);</span>
+<a name="l321"><span class="ln">321  </span></a> <span class="s6">*</span>
+<a name="l322"><span class="ln">322  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{String} uri mongodb URI to connect to</span>
+<a name="l323"><span class="ln">323  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Object} [options] passed down to the [MongoDB driver's `connect()` function](https://mongodb.github.io/node-mongodb-native/4.9/interfaces/MongoClientOptions.html), except for 4 mongoose-specific options explained below.</span>
+<a name="l324"><span class="ln">324  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Boolean} [options.bufferCommands=true] Mongoose specific option. Set to false to [disable buffering](https://mongoosejs.com/docs/faq.html#callback_never_executes) on all models associated with this connection.</span>
+<a name="l325"><span class="ln">325  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{String} [options.dbName] The name of the database you want to use. If not provided, Mongoose uses the database name from connection string.</span>
+<a name="l326"><span class="ln">326  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{String} [options.user] username for authentication, equivalent to `options.auth.user`. Maintained for backwards compatibility.</span>
+<a name="l327"><span class="ln">327  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{String} [options.pass] password for authentication, equivalent to `options.auth.password`. Maintained for backwards compatibility.</span>
+<a name="l328"><span class="ln">328  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Boolean} [options.autoIndex=true] Mongoose-specific option. Set to false to disable automatic index creation for all models associated with this connection.</span>
+<a name="l329"><span class="ln">329  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Class} [options.promiseLibrary] Sets the [underlying driver's promise library](https://mongodb.github.io/node-mongodb-native/4.9/interfaces/MongoClientOptions.html#promiseLibrary).</span>
+<a name="l330"><span class="ln">330  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Number} [options.maxPoolSize=5] The maximum number of sockets the MongoDB driver will keep open for this connection. Keep in mind that MongoDB only allows one operation per socket at a time, so you may want to increase this if you find you have a few slow queries that are blocking faster queries from proceeding. See [Slow Trains in MongoDB and Node.js](https://thecodebarbarian.com/slow-trains-in-mongodb-and-nodejs).</span>
+<a name="l331"><span class="ln">331  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Number} [options.minPoolSize=1] The minimum number of sockets the MongoDB driver will keep open for this connection. Keep in mind that MongoDB only allows one operation per socket at a time, so you may want to increase this if you find you have a few slow queries that are blocking faster queries from proceeding. See [Slow Trains in MongoDB and Node.js](https://thecodebarbarian.com/slow-trains-in-mongodb-and-nodejs).</span>
+<a name="l332"><span class="ln">332  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Number} [options.socketTimeoutMS=0] How long the MongoDB driver will wait before killing a socket due to inactivity _after initial connection_. Defaults to 0, which means Node.js will not time out the socket due to inactivity. A socket may be inactive because of either no activity or a long-running operation. This option is passed to [Node.js `socket#setTimeout()` function](https://nodejs.org/api/net.html#net_socket_settimeout_timeout_callback) after the MongoDB driver successfully completes.</span>
+<a name="l333"><span class="ln">333  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Number} [options.family=0] Passed transparently to [Node.js' `dns.lookup()`](https://nodejs.org/api/dns.html#dns_dns_lookup_hostname_options_callback) function. May be either `0`, `4`, or `6`. `4` means use IPv4 only, `6` means use IPv6 only, `0` means try both.</span>
+<a name="l334"><span class="ln">334  </span></a> <span class="s6">* </span><span class="s7">@return </span><span class="s6">{Connection} the created Connection object. Connections are not thenable, so you can't do `await mongoose.createConnection()`. To await use `mongoose.createConnection(uri).asPromise()` instead.</span>
+<a name="l335"><span class="ln">335  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l336"><span class="ln">336  </span></a> <span class="s6">*/</span>
+<a name="l337"><span class="ln">337  </span></a>
+<a name="l338"><span class="ln">338  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">createConnection </span><span class="s1">= </span><span class="s4">function</span><span class="s1">(</span><span class="s2">uri</span><span class="s1">, </span><span class="s2">options</span><span class="s1">) {</span>
+<a name="l339"><span class="ln">339  </span></a>  <span class="s4">const </span><span class="s2">_mongoose </span><span class="s1">= </span><span class="s4">this instanceof </span><span class="s2">Mongoose </span><span class="s1">? </span><span class="s4">this </span><span class="s1">: </span><span class="s2">mongoose</span><span class="s1">;</span>
+<a name="l340"><span class="ln">340  </span></a>
+<a name="l341"><span class="ln">341  </span></a>  <span class="s4">const </span><span class="s2">Connection </span><span class="s1">= </span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">__driver</span><span class="s1">.</span><span class="s2">Connection</span><span class="s1">;</span>
+<a name="l342"><span class="ln">342  </span></a>  <span class="s4">const </span><span class="s2">conn </span><span class="s1">= </span><span class="s4">new </span><span class="s2">Connection</span><span class="s1">(</span><span class="s2">_mongoose</span><span class="s1">);</span>
+<a name="l343"><span class="ln">343  </span></a>  <span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">connections</span><span class="s1">.</span><span class="s2">push</span><span class="s1">(</span><span class="s2">conn</span><span class="s1">);</span>
+<a name="l344"><span class="ln">344  </span></a>  <span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">nextConnectionId</span><span class="s1">++;</span>
+<a name="l345"><span class="ln">345  </span></a>  <span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">events</span><span class="s1">.</span><span class="s2">emit</span><span class="s1">(</span><span class="s0">'createConnection'</span><span class="s1">, </span><span class="s2">conn</span><span class="s1">);</span>
+<a name="l346"><span class="ln">346  </span></a>
+<a name="l347"><span class="ln">347  </span></a>  <span class="s4">if </span><span class="s1">(</span><span class="s2">arguments</span><span class="s1">.</span><span class="s2">length </span><span class="s1">&gt; </span><span class="s8">0</span><span class="s1">) {</span>
+<a name="l348"><span class="ln">348  </span></a>    <span class="s2">conn</span><span class="s1">.</span><span class="s2">openUri</span><span class="s1">(</span><span class="s2">uri</span><span class="s1">, { </span><span class="s2">...options</span><span class="s1">, </span><span class="s2">_fireAndForget</span><span class="s1">: </span><span class="s4">true </span><span class="s1">});</span>
+<a name="l349"><span class="ln">349  </span></a>  <span class="s1">}</span>
+<a name="l350"><span class="ln">350  </span></a>
+<a name="l351"><span class="ln">351  </span></a>  <span class="s4">return </span><span class="s2">conn</span><span class="s1">;</span>
+<a name="l352"><span class="ln">352  </span></a><span class="s1">};</span>
+<a name="l353"><span class="ln">353  </span></a>
+<a name="l354"><span class="ln">354  </span></a><span class="s6">/**</span>
+<a name="l355"><span class="ln">355  </span></a> <span class="s6">* Opens the default mongoose connection.</span>
+<a name="l356"><span class="ln">356  </span></a> <span class="s6">*</span>
+<a name="l357"><span class="ln">357  </span></a> <span class="s6">* #### Example:</span>
+<a name="l358"><span class="ln">358  </span></a> <span class="s6">*</span>
+<a name="l359"><span class="ln">359  </span></a> <span class="s6">*     mongoose.connect('mongodb://user:pass@127.0.0.1:port/database');</span>
+<a name="l360"><span class="ln">360  </span></a> <span class="s6">*</span>
+<a name="l361"><span class="ln">361  </span></a> <span class="s6">*     // replica sets</span>
+<a name="l362"><span class="ln">362  </span></a> <span class="s6">*     const uri = 'mongodb://user:pass@127.0.0.1:port,anotherhost:port,yetanother:port/mydatabase';</span>
+<a name="l363"><span class="ln">363  </span></a> <span class="s6">*     mongoose.connect(uri);</span>
+<a name="l364"><span class="ln">364  </span></a> <span class="s6">*</span>
+<a name="l365"><span class="ln">365  </span></a> <span class="s6">*     // with options</span>
+<a name="l366"><span class="ln">366  </span></a> <span class="s6">*     mongoose.connect(uri, options);</span>
+<a name="l367"><span class="ln">367  </span></a> <span class="s6">*</span>
+<a name="l368"><span class="ln">368  </span></a> <span class="s6">*     // optional callback that gets fired when initial connection completed</span>
+<a name="l369"><span class="ln">369  </span></a> <span class="s6">*     const uri = 'mongodb://nonexistent.domain:27000';</span>
+<a name="l370"><span class="ln">370  </span></a> <span class="s6">*     mongoose.connect(uri, function(error) {</span>
+<a name="l371"><span class="ln">371  </span></a> <span class="s6">*       // if error is truthy, the initial connection failed.</span>
+<a name="l372"><span class="ln">372  </span></a> <span class="s6">*     })</span>
+<a name="l373"><span class="ln">373  </span></a> <span class="s6">*</span>
+<a name="l374"><span class="ln">374  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{String} uri mongodb URI to connect to</span>
+<a name="l375"><span class="ln">375  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Object} [options] passed down to the [MongoDB driver's `connect()` function](https://mongodb.github.io/node-mongodb-native/4.9/interfaces/MongoClientOptions.html), except for 4 mongoose-specific options explained below.</span>
+<a name="l376"><span class="ln">376  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Boolean} [options.bufferCommands=true] Mongoose specific option. Set to false to [disable buffering](https://mongoosejs.com/docs/faq.html#callback_never_executes) on all models associated with this connection.</span>
+<a name="l377"><span class="ln">377  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Number} [options.bufferTimeoutMS=10000] Mongoose specific option. If `bufferCommands` is true, Mongoose will throw an error after `bufferTimeoutMS` if the operation is still buffered.</span>
+<a name="l378"><span class="ln">378  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{String} [options.dbName] The name of the database we want to use. If not provided, use database name from connection string.</span>
+<a name="l379"><span class="ln">379  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{String} [options.user] username for authentication, equivalent to `options.auth.user`. Maintained for backwards compatibility.</span>
+<a name="l380"><span class="ln">380  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{String} [options.pass] password for authentication, equivalent to `options.auth.password`. Maintained for backwards compatibility.</span>
+<a name="l381"><span class="ln">381  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Number} [options.maxPoolSize=100] The maximum number of sockets the MongoDB driver will keep open for this connection. Keep in mind that MongoDB only allows one operation per socket at a time, so you may want to increase this if you find you have a few slow queries that are blocking faster queries from proceeding. See [Slow Trains in MongoDB and Node.js](https://thecodebarbarian.com/slow-trains-in-mongodb-and-nodejs).</span>
+<a name="l382"><span class="ln">382  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Number} [options.minPoolSize=0] The minimum number of sockets the MongoDB driver will keep open for this connection.</span>
+<a name="l383"><span class="ln">383  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Number} [options.serverSelectionTimeoutMS] If `useUnifiedTopology = true`, the MongoDB driver will try to find a server to send any given operation to, and keep retrying for `serverSelectionTimeoutMS` milliseconds before erroring out. If not set, the MongoDB driver defaults to using `30000` (30 seconds).</span>
+<a name="l384"><span class="ln">384  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Number} [options.heartbeatFrequencyMS] If `useUnifiedTopology = true`, the MongoDB driver sends a heartbeat every `heartbeatFrequencyMS` to check on the status of the connection. A heartbeat is subject to `serverSelectionTimeoutMS`, so the MongoDB driver will retry failed heartbeats for up to 30 seconds by default. Mongoose only emits a `'disconnected'` event after a heartbeat has failed, so you may want to decrease this setting to reduce the time between when your server goes down and when Mongoose emits `'disconnected'`. We recommend you do **not** set this setting below 1000, too many heartbeats can lead to performance degradation.</span>
+<a name="l385"><span class="ln">385  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Boolean} [options.autoIndex=true] Mongoose-specific option. Set to false to disable automatic index creation for all models associated with this connection.</span>
+<a name="l386"><span class="ln">386  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Class} [options.promiseLibrary] Sets the [underlying driver's promise library](https://mongodb.github.io/node-mongodb-native/4.9/interfaces/MongoClientOptions.html#promiseLibrary).</span>
+<a name="l387"><span class="ln">387  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Number} [options.socketTimeoutMS=0] How long the MongoDB driver will wait before killing a socket due to inactivity _after initial connection_. A socket may be inactive because of either no activity or a long-running operation. `socketTimeoutMS` defaults to 0, which means Node.js will not time out the socket due to inactivity. This option is passed to [Node.js `socket#setTimeout()` function](https://nodejs.org/api/net.html#net_socket_settimeout_timeout_callback) after the MongoDB driver successfully completes.</span>
+<a name="l388"><span class="ln">388  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Number} [options.family=0] Passed transparently to [Node.js' `dns.lookup()`](https://nodejs.org/api/dns.html#dns_dns_lookup_hostname_options_callback) function. May be either `0`, `4`, or `6`. `4` means use IPv4 only, `6` means use IPv6 only, `0` means try both.</span>
+<a name="l389"><span class="ln">389  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Boolean} [options.autoCreate=false] Set to `true` to make Mongoose automatically call `createCollection()` on every model created on this connection.</span>
+<a name="l390"><span class="ln">390  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Function} [callback]</span>
+<a name="l391"><span class="ln">391  </span></a> <span class="s6">* </span><span class="s7">@see </span><span class="s6">Mongoose#createConnection https://mongoosejs.com/docs/api/mongoose.html#Mongoose.prototype.createConnection()</span>
+<a name="l392"><span class="ln">392  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l393"><span class="ln">393  </span></a> <span class="s6">* </span><span class="s7">@return </span><span class="s6">{Promise} resolves to `this` if connection succeeded</span>
+<a name="l394"><span class="ln">394  </span></a> <span class="s6">*/</span>
+<a name="l395"><span class="ln">395  </span></a>
+<a name="l396"><span class="ln">396  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">connect </span><span class="s1">= </span><span class="s2">async </span><span class="s4">function </span><span class="s2">connect</span><span class="s1">(</span><span class="s2">uri</span><span class="s1">, </span><span class="s2">options</span><span class="s1">) {</span>
+<a name="l397"><span class="ln">397  </span></a>  <span class="s4">if </span><span class="s1">(</span><span class="s4">typeof </span><span class="s2">options </span><span class="s1">=== </span><span class="s0">'function' </span><span class="s1">|| (</span><span class="s2">arguments</span><span class="s1">.</span><span class="s2">length </span><span class="s1">&gt;= </span><span class="s8">3 </span><span class="s1">&amp;&amp; </span><span class="s4">typeof </span><span class="s2">arguments</span><span class="s1">[</span><span class="s8">2</span><span class="s1">] === </span><span class="s0">'function'</span><span class="s1">)) {</span>
+<a name="l398"><span class="ln">398  </span></a>    <span class="s4">throw new </span><span class="s2">MongooseError</span><span class="s1">(</span><span class="s0">'Mongoose.prototype.connect() no longer accepts a callback'</span><span class="s1">);</span>
+<a name="l399"><span class="ln">399  </span></a>  <span class="s1">}</span>
+<a name="l400"><span class="ln">400  </span></a>
+<a name="l401"><span class="ln">401  </span></a>  <span class="s4">const </span><span class="s2">_mongoose </span><span class="s1">= </span><span class="s4">this instanceof </span><span class="s2">Mongoose </span><span class="s1">? </span><span class="s4">this </span><span class="s1">: </span><span class="s2">mongoose</span><span class="s1">;</span>
+<a name="l402"><span class="ln">402  </span></a>  <span class="s4">const </span><span class="s2">conn </span><span class="s1">= </span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">connection</span><span class="s1">;</span>
+<a name="l403"><span class="ln">403  </span></a>
+<a name="l404"><span class="ln">404  </span></a>  <span class="s4">return </span><span class="s2">conn</span><span class="s1">.</span><span class="s2">openUri</span><span class="s1">(</span><span class="s2">uri</span><span class="s1">, </span><span class="s2">options</span><span class="s1">).</span><span class="s2">then</span><span class="s1">(() =&gt; </span><span class="s2">_mongoose</span><span class="s1">);</span>
+<a name="l405"><span class="ln">405  </span></a><span class="s1">};</span>
+<a name="l406"><span class="ln">406  </span></a>
+<a name="l407"><span class="ln">407  </span></a><span class="s6">/**</span>
+<a name="l408"><span class="ln">408  </span></a> <span class="s6">* Runs `.close()` on all connections in parallel.</span>
+<a name="l409"><span class="ln">409  </span></a> <span class="s6">*</span>
+<a name="l410"><span class="ln">410  </span></a> <span class="s6">* </span><span class="s7">@return </span><span class="s6">{Promise} resolves when all connections are closed, or rejects with the first error that occurred.</span>
+<a name="l411"><span class="ln">411  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l412"><span class="ln">412  </span></a> <span class="s6">*/</span>
+<a name="l413"><span class="ln">413  </span></a>
+<a name="l414"><span class="ln">414  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">disconnect </span><span class="s1">= </span><span class="s2">async </span><span class="s4">function </span><span class="s2">disconnect</span><span class="s1">() {</span>
+<a name="l415"><span class="ln">415  </span></a>  <span class="s4">if </span><span class="s1">(</span><span class="s2">arguments</span><span class="s1">.</span><span class="s2">length </span><span class="s1">&gt;= </span><span class="s8">1 </span><span class="s1">&amp;&amp; </span><span class="s4">typeof </span><span class="s2">arguments</span><span class="s1">[</span><span class="s8">0</span><span class="s1">] === </span><span class="s0">'function'</span><span class="s1">) {</span>
+<a name="l416"><span class="ln">416  </span></a>    <span class="s4">throw new </span><span class="s2">MongooseError</span><span class="s1">(</span><span class="s0">'Mongoose.prototype.disconnect() no longer accepts a callback'</span><span class="s1">);</span>
+<a name="l417"><span class="ln">417  </span></a>  <span class="s1">}</span>
+<a name="l418"><span class="ln">418  </span></a>
+<a name="l419"><span class="ln">419  </span></a>  <span class="s4">const </span><span class="s2">_mongoose </span><span class="s1">= </span><span class="s4">this instanceof </span><span class="s2">Mongoose </span><span class="s1">? </span><span class="s4">this </span><span class="s1">: </span><span class="s2">mongoose</span><span class="s1">;</span>
+<a name="l420"><span class="ln">420  </span></a>
+<a name="l421"><span class="ln">421  </span></a>  <span class="s4">const </span><span class="s2">remaining </span><span class="s1">= </span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">connections</span><span class="s1">.</span><span class="s2">length</span><span class="s1">;</span>
+<a name="l422"><span class="ln">422  </span></a>  <span class="s4">if </span><span class="s1">(</span><span class="s2">remaining </span><span class="s1">&lt;= </span><span class="s8">0</span><span class="s1">) {</span>
+<a name="l423"><span class="ln">423  </span></a>    <span class="s4">return</span><span class="s1">;</span>
+<a name="l424"><span class="ln">424  </span></a>  <span class="s1">}</span>
+<a name="l425"><span class="ln">425  </span></a>  <span class="s4">await </span><span class="s2">Promise</span><span class="s1">.</span><span class="s2">all</span><span class="s1">(</span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">connections</span><span class="s1">.</span><span class="s2">map</span><span class="s1">(</span><span class="s2">conn </span><span class="s1">=&gt; </span><span class="s2">conn</span><span class="s1">.</span><span class="s2">close</span><span class="s1">()));</span>
+<a name="l426"><span class="ln">426  </span></a><span class="s1">};</span>
+<a name="l427"><span class="ln">427  </span></a>
+<a name="l428"><span class="ln">428  </span></a><span class="s6">/**</span>
+<a name="l429"><span class="ln">429  </span></a> <span class="s6">* _Requires MongoDB &gt;= 3.6.0._ Starts a [MongoDB session](https://www.mongodb.com/docs/manual/release-notes/3.6/#client-sessions)</span>
+<a name="l430"><span class="ln">430  </span></a> <span class="s6">* for benefits like causal consistency, [retryable writes](https://www.mongodb.com/docs/manual/core/retryable-writes/),</span>
+<a name="l431"><span class="ln">431  </span></a> <span class="s6">* and [transactions](https://thecodebarbarian.com/a-node-js-perspective-on-mongodb-4-transactions.html).</span>
+<a name="l432"><span class="ln">432  </span></a> <span class="s6">*</span>
+<a name="l433"><span class="ln">433  </span></a> <span class="s6">* Calling `mongoose.startSession()` is equivalent to calling `mongoose.connection.startSession()`.</span>
+<a name="l434"><span class="ln">434  </span></a> <span class="s6">* Sessions are scoped to a connection, so calling `mongoose.startSession()`</span>
+<a name="l435"><span class="ln">435  </span></a> <span class="s6">* starts a session on the [default mongoose connection](https://mongoosejs.com/docs/api/mongoose.html#Mongoose.prototype.connection).</span>
+<a name="l436"><span class="ln">436  </span></a> <span class="s6">*</span>
+<a name="l437"><span class="ln">437  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Object} [options] see the [mongodb driver options](https://mongodb.github.io/node-mongodb-native/4.9/classes/MongoClient.html#startSession)</span>
+<a name="l438"><span class="ln">438  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Boolean} [options.causalConsistency=true] set to false to disable causal consistency</span>
+<a name="l439"><span class="ln">439  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Function} [callback]</span>
+<a name="l440"><span class="ln">440  </span></a> <span class="s6">* </span><span class="s7">@return </span><span class="s6">{Promise&lt;ClientSession&gt;} promise that resolves to a MongoDB driver `ClientSession`</span>
+<a name="l441"><span class="ln">441  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l442"><span class="ln">442  </span></a> <span class="s6">*/</span>
+<a name="l443"><span class="ln">443  </span></a>
+<a name="l444"><span class="ln">444  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">startSession </span><span class="s1">= </span><span class="s4">function</span><span class="s1">() {</span>
+<a name="l445"><span class="ln">445  </span></a>  <span class="s4">const </span><span class="s2">_mongoose </span><span class="s1">= </span><span class="s4">this instanceof </span><span class="s2">Mongoose </span><span class="s1">? </span><span class="s4">this </span><span class="s1">: </span><span class="s2">mongoose</span><span class="s1">;</span>
+<a name="l446"><span class="ln">446  </span></a>
+<a name="l447"><span class="ln">447  </span></a>  <span class="s4">return </span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">connection</span><span class="s1">.</span><span class="s2">startSession</span><span class="s1">.</span><span class="s2">apply</span><span class="s1">(</span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">connection</span><span class="s1">, </span><span class="s2">arguments</span><span class="s1">);</span>
+<a name="l448"><span class="ln">448  </span></a><span class="s1">};</span>
+<a name="l449"><span class="ln">449  </span></a>
+<a name="l450"><span class="ln">450  </span></a><span class="s6">/**</span>
+<a name="l451"><span class="ln">451  </span></a> <span class="s6">* Getter/setter around function for pluralizing collection names.</span>
+<a name="l452"><span class="ln">452  </span></a> <span class="s6">*</span>
+<a name="l453"><span class="ln">453  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Function|null} [fn] overwrites the function used to pluralize collection names</span>
+<a name="l454"><span class="ln">454  </span></a> <span class="s6">* </span><span class="s7">@return </span><span class="s6">{Function|null} the current function used to pluralize collection names, defaults to the legacy function from `mongoose-legacy-pluralize`.</span>
+<a name="l455"><span class="ln">455  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l456"><span class="ln">456  </span></a> <span class="s6">*/</span>
+<a name="l457"><span class="ln">457  </span></a>
+<a name="l458"><span class="ln">458  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">pluralize </span><span class="s1">= </span><span class="s4">function</span><span class="s1">(</span><span class="s2">fn</span><span class="s1">) {</span>
+<a name="l459"><span class="ln">459  </span></a>  <span class="s4">const </span><span class="s2">_mongoose </span><span class="s1">= </span><span class="s4">this instanceof </span><span class="s2">Mongoose </span><span class="s1">? </span><span class="s4">this </span><span class="s1">: </span><span class="s2">mongoose</span><span class="s1">;</span>
+<a name="l460"><span class="ln">460  </span></a>
+<a name="l461"><span class="ln">461  </span></a>  <span class="s4">if </span><span class="s1">(</span><span class="s2">arguments</span><span class="s1">.</span><span class="s2">length </span><span class="s1">&gt; </span><span class="s8">0</span><span class="s1">) {</span>
+<a name="l462"><span class="ln">462  </span></a>    <span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">_pluralize </span><span class="s1">= </span><span class="s2">fn</span><span class="s1">;</span>
+<a name="l463"><span class="ln">463  </span></a>  <span class="s1">}</span>
+<a name="l464"><span class="ln">464  </span></a>  <span class="s4">return </span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">_pluralize</span><span class="s1">;</span>
+<a name="l465"><span class="ln">465  </span></a><span class="s1">};</span>
+<a name="l466"><span class="ln">466  </span></a>
+<a name="l467"><span class="ln">467  </span></a><span class="s6">/**</span>
+<a name="l468"><span class="ln">468  </span></a> <span class="s6">* Defines a model or retrieves it.</span>
+<a name="l469"><span class="ln">469  </span></a> <span class="s6">*</span>
+<a name="l470"><span class="ln">470  </span></a> <span class="s6">* Models defined on the `mongoose` instance are available to all connection</span>
+<a name="l471"><span class="ln">471  </span></a> <span class="s6">* created by the same `mongoose` instance.</span>
+<a name="l472"><span class="ln">472  </span></a> <span class="s6">*</span>
+<a name="l473"><span class="ln">473  </span></a> <span class="s6">* If you call `mongoose.model()` with twice the same name but a different schema,</span>
+<a name="l474"><span class="ln">474  </span></a> <span class="s6">* you will get an `OverwriteModelError`. If you call `mongoose.model()` with</span>
+<a name="l475"><span class="ln">475  </span></a> <span class="s6">* the same name and same schema, you'll get the same schema back.</span>
+<a name="l476"><span class="ln">476  </span></a> <span class="s6">*</span>
+<a name="l477"><span class="ln">477  </span></a> <span class="s6">* #### Example:</span>
+<a name="l478"><span class="ln">478  </span></a> <span class="s6">*</span>
+<a name="l479"><span class="ln">479  </span></a> <span class="s6">*     const mongoose = require('mongoose');</span>
+<a name="l480"><span class="ln">480  </span></a> <span class="s6">*</span>
+<a name="l481"><span class="ln">481  </span></a> <span class="s6">*     // define an Actor model with this mongoose instance</span>
+<a name="l482"><span class="ln">482  </span></a> <span class="s6">*     const schema = new Schema({ name: String });</span>
+<a name="l483"><span class="ln">483  </span></a> <span class="s6">*     mongoose.model('Actor', schema);</span>
+<a name="l484"><span class="ln">484  </span></a> <span class="s6">*</span>
+<a name="l485"><span class="ln">485  </span></a> <span class="s6">*     // create a new connection</span>
+<a name="l486"><span class="ln">486  </span></a> <span class="s6">*     const conn = mongoose.createConnection(..);</span>
+<a name="l487"><span class="ln">487  </span></a> <span class="s6">*</span>
+<a name="l488"><span class="ln">488  </span></a> <span class="s6">*     // create Actor model</span>
+<a name="l489"><span class="ln">489  </span></a> <span class="s6">*     const Actor = conn.model('Actor', schema);</span>
+<a name="l490"><span class="ln">490  </span></a> <span class="s6">*     conn.model('Actor') === Actor; // true</span>
+<a name="l491"><span class="ln">491  </span></a> <span class="s6">*     conn.model('Actor', schema) === Actor; // true, same schema</span>
+<a name="l492"><span class="ln">492  </span></a> <span class="s6">*     conn.model('Actor', schema, 'actors') === Actor; // true, same schema and collection name</span>
+<a name="l493"><span class="ln">493  </span></a> <span class="s6">*</span>
+<a name="l494"><span class="ln">494  </span></a> <span class="s6">*     // This throws an `OverwriteModelError` because the schema is different.</span>
+<a name="l495"><span class="ln">495  </span></a> <span class="s6">*     conn.model('Actor', new Schema({ name: String }));</span>
+<a name="l496"><span class="ln">496  </span></a> <span class="s6">*</span>
+<a name="l497"><span class="ln">497  </span></a> <span class="s6">* _When no `collection` argument is passed, Mongoose uses the model name. If you don't like this behavior, either pass a collection name, use `mongoose.pluralize()`, or set your schemas collection name option._</span>
+<a name="l498"><span class="ln">498  </span></a> <span class="s6">*</span>
+<a name="l499"><span class="ln">499  </span></a> <span class="s6">* #### Example:</span>
+<a name="l500"><span class="ln">500  </span></a> <span class="s6">*</span>
+<a name="l501"><span class="ln">501  </span></a> <span class="s6">*     const schema = new Schema({ name: String }, { collection: 'actor' });</span>
+<a name="l502"><span class="ln">502  </span></a> <span class="s6">*</span>
+<a name="l503"><span class="ln">503  </span></a> <span class="s6">*     // or</span>
+<a name="l504"><span class="ln">504  </span></a> <span class="s6">*</span>
+<a name="l505"><span class="ln">505  </span></a> <span class="s6">*     schema.set('collection', 'actor');</span>
+<a name="l506"><span class="ln">506  </span></a> <span class="s6">*</span>
+<a name="l507"><span class="ln">507  </span></a> <span class="s6">*     // or</span>
+<a name="l508"><span class="ln">508  </span></a> <span class="s6">*</span>
+<a name="l509"><span class="ln">509  </span></a> <span class="s6">*     const collectionName = 'actor';</span>
+<a name="l510"><span class="ln">510  </span></a> <span class="s6">*     const M = mongoose.model('Actor', schema, collectionName);</span>
+<a name="l511"><span class="ln">511  </span></a> <span class="s6">*</span>
+<a name="l512"><span class="ln">512  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{String|Function} name model name or class extending Model</span>
+<a name="l513"><span class="ln">513  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Schema} [schema] the schema to use.</span>
+<a name="l514"><span class="ln">514  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{String} [collection] name (optional, inferred from model name)</span>
+<a name="l515"><span class="ln">515  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Object} [options]</span>
+<a name="l516"><span class="ln">516  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Boolean} [options.overwriteModels=false] If true, overwrite existing models with the same name to avoid `OverwriteModelError`</span>
+<a name="l517"><span class="ln">517  </span></a> <span class="s6">* </span><span class="s7">@return </span><span class="s6">{Model} The model associated with `name`. Mongoose will create the model if it doesn't already exist.</span>
+<a name="l518"><span class="ln">518  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l519"><span class="ln">519  </span></a> <span class="s6">*/</span>
+<a name="l520"><span class="ln">520  </span></a>
+<a name="l521"><span class="ln">521  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">model </span><span class="s1">= </span><span class="s4">function</span><span class="s1">(</span><span class="s2">name</span><span class="s1">, </span><span class="s2">schema</span><span class="s1">, </span><span class="s2">collection</span><span class="s1">, </span><span class="s2">options</span><span class="s1">) {</span>
+<a name="l522"><span class="ln">522  </span></a>  <span class="s4">const </span><span class="s2">_mongoose </span><span class="s1">= </span><span class="s4">this instanceof </span><span class="s2">Mongoose </span><span class="s1">? </span><span class="s4">this </span><span class="s1">: </span><span class="s2">mongoose</span><span class="s1">;</span>
+<a name="l523"><span class="ln">523  </span></a>
+<a name="l524"><span class="ln">524  </span></a>  <span class="s4">if </span><span class="s1">(</span><span class="s4">typeof </span><span class="s2">schema </span><span class="s1">=== </span><span class="s0">'string'</span><span class="s1">) {</span>
+<a name="l525"><span class="ln">525  </span></a>    <span class="s2">collection </span><span class="s1">= </span><span class="s2">schema</span><span class="s1">;</span>
+<a name="l526"><span class="ln">526  </span></a>    <span class="s2">schema </span><span class="s1">= </span><span class="s4">false</span><span class="s1">;</span>
+<a name="l527"><span class="ln">527  </span></a>  <span class="s1">}</span>
+<a name="l528"><span class="ln">528  </span></a>
+<a name="l529"><span class="ln">529  </span></a>  <span class="s4">if </span><span class="s1">(</span><span class="s2">arguments</span><span class="s1">.</span><span class="s2">length </span><span class="s1">=== </span><span class="s8">1</span><span class="s1">) {</span>
+<a name="l530"><span class="ln">530  </span></a>    <span class="s4">const </span><span class="s2">model </span><span class="s1">= </span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">models</span><span class="s1">[</span><span class="s2">name</span><span class="s1">];</span>
+<a name="l531"><span class="ln">531  </span></a>    <span class="s4">if </span><span class="s1">(!</span><span class="s2">model</span><span class="s1">) {</span>
+<a name="l532"><span class="ln">532  </span></a>      <span class="s4">throw new </span><span class="s2">MongooseError</span><span class="s1">.</span><span class="s2">MissingSchemaError</span><span class="s1">(</span><span class="s2">name</span><span class="s1">);</span>
+<a name="l533"><span class="ln">533  </span></a>    <span class="s1">}</span>
+<a name="l534"><span class="ln">534  </span></a>    <span class="s4">return </span><span class="s2">model</span><span class="s1">;</span>
+<a name="l535"><span class="ln">535  </span></a>  <span class="s1">}</span>
+<a name="l536"><span class="ln">536  </span></a>
+<a name="l537"><span class="ln">537  </span></a>  <span class="s4">if </span><span class="s1">(</span><span class="s2">utils</span><span class="s1">.</span><span class="s2">isObject</span><span class="s1">(</span><span class="s2">schema</span><span class="s1">) &amp;&amp; !(</span><span class="s2">schema </span><span class="s4">instanceof </span><span class="s2">Schema</span><span class="s1">)) {</span>
+<a name="l538"><span class="ln">538  </span></a>    <span class="s2">schema </span><span class="s1">= </span><span class="s4">new </span><span class="s2">Schema</span><span class="s1">(</span><span class="s2">schema</span><span class="s1">);</span>
+<a name="l539"><span class="ln">539  </span></a>  <span class="s1">}</span>
+<a name="l540"><span class="ln">540  </span></a>  <span class="s4">if </span><span class="s1">(</span><span class="s2">schema </span><span class="s1">&amp;&amp; !(</span><span class="s2">schema </span><span class="s4">instanceof </span><span class="s2">Schema</span><span class="s1">)) {</span>
+<a name="l541"><span class="ln">541  </span></a>    <span class="s4">throw new </span><span class="s2">Error</span><span class="s1">(</span><span class="s0">'The 2nd parameter to `mongoose.model()` should be a ' </span><span class="s1">+</span>
+<a name="l542"><span class="ln">542  </span></a>      <span class="s0">'schema or a POJO'</span><span class="s1">);</span>
+<a name="l543"><span class="ln">543  </span></a>  <span class="s1">}</span>
+<a name="l544"><span class="ln">544  </span></a>
+<a name="l545"><span class="ln">545  </span></a>  <span class="s3">// handle internal options from connection.model()</span>
+<a name="l546"><span class="ln">546  </span></a>  <span class="s2">options </span><span class="s1">= </span><span class="s2">options </span><span class="s1">|| {};</span>
+<a name="l547"><span class="ln">547  </span></a>
+<a name="l548"><span class="ln">548  </span></a>  <span class="s4">const </span><span class="s2">originalSchema </span><span class="s1">= </span><span class="s2">schema</span><span class="s1">;</span>
+<a name="l549"><span class="ln">549  </span></a>  <span class="s4">if </span><span class="s1">(</span><span class="s2">schema</span><span class="s1">) {</span>
+<a name="l550"><span class="ln">550  </span></a>    <span class="s4">if </span><span class="s1">(</span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">get</span><span class="s1">(</span><span class="s0">'cloneSchemas'</span><span class="s1">)) {</span>
+<a name="l551"><span class="ln">551  </span></a>      <span class="s2">schema </span><span class="s1">= </span><span class="s2">schema</span><span class="s1">.</span><span class="s2">clone</span><span class="s1">();</span>
+<a name="l552"><span class="ln">552  </span></a>    <span class="s1">}</span>
+<a name="l553"><span class="ln">553  </span></a>    <span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">_applyPlugins</span><span class="s1">(</span><span class="s2">schema</span><span class="s1">);</span>
+<a name="l554"><span class="ln">554  </span></a>  <span class="s1">}</span>
+<a name="l555"><span class="ln">555  </span></a>
+<a name="l556"><span class="ln">556  </span></a>  <span class="s3">// connection.model() may be passing a different schema for</span>
+<a name="l557"><span class="ln">557  </span></a>  <span class="s3">// an existing model name. in this case don't read from cache.</span>
+<a name="l558"><span class="ln">558  </span></a>  <span class="s4">const </span><span class="s2">overwriteModels </span><span class="s1">= </span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">options</span><span class="s1">.</span><span class="s2">hasOwnProperty</span><span class="s1">(</span><span class="s0">'overwriteModels'</span><span class="s1">) ?</span>
+<a name="l559"><span class="ln">559  </span></a>    <span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">options</span><span class="s1">.</span><span class="s2">overwriteModels </span><span class="s1">:</span>
+<a name="l560"><span class="ln">560  </span></a>    <span class="s2">options</span><span class="s1">.</span><span class="s2">overwriteModels</span><span class="s1">;</span>
+<a name="l561"><span class="ln">561  </span></a>  <span class="s4">if </span><span class="s1">(</span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">models</span><span class="s1">.</span><span class="s2">hasOwnProperty</span><span class="s1">(</span><span class="s2">name</span><span class="s1">) &amp;&amp; </span><span class="s2">options</span><span class="s1">.</span><span class="s2">cache </span><span class="s1">!== </span><span class="s4">false </span><span class="s1">&amp;&amp; </span><span class="s2">overwriteModels </span><span class="s1">!== </span><span class="s4">true</span><span class="s1">) {</span>
+<a name="l562"><span class="ln">562  </span></a>    <span class="s4">if </span><span class="s1">(</span><span class="s2">originalSchema </span><span class="s1">&amp;&amp;</span>
+<a name="l563"><span class="ln">563  </span></a>        <span class="s2">originalSchema</span><span class="s1">.</span><span class="s2">instanceOfSchema </span><span class="s1">&amp;&amp;</span>
+<a name="l564"><span class="ln">564  </span></a>        <span class="s2">originalSchema </span><span class="s1">!== </span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">models</span><span class="s1">[</span><span class="s2">name</span><span class="s1">].</span><span class="s2">schema</span><span class="s1">) {</span>
+<a name="l565"><span class="ln">565  </span></a>      <span class="s4">throw new </span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">Error</span><span class="s1">.</span><span class="s2">OverwriteModelError</span><span class="s1">(</span><span class="s2">name</span><span class="s1">);</span>
+<a name="l566"><span class="ln">566  </span></a>    <span class="s1">}</span>
+<a name="l567"><span class="ln">567  </span></a>    <span class="s4">if </span><span class="s1">(</span><span class="s2">collection </span><span class="s1">&amp;&amp; </span><span class="s2">collection </span><span class="s1">!== </span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">models</span><span class="s1">[</span><span class="s2">name</span><span class="s1">].</span><span class="s2">collection</span><span class="s1">.</span><span class="s2">name</span><span class="s1">) {</span>
+<a name="l568"><span class="ln">568  </span></a>      <span class="s3">// subclass current model with alternate collection</span>
+<a name="l569"><span class="ln">569  </span></a>      <span class="s4">const </span><span class="s2">model </span><span class="s1">= </span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">models</span><span class="s1">[</span><span class="s2">name</span><span class="s1">];</span>
+<a name="l570"><span class="ln">570  </span></a>      <span class="s2">schema </span><span class="s1">= </span><span class="s2">model</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">schema</span><span class="s1">;</span>
+<a name="l571"><span class="ln">571  </span></a>      <span class="s4">const </span><span class="s2">sub </span><span class="s1">= </span><span class="s2">model</span><span class="s1">.</span><span class="s2">__subclass</span><span class="s1">(</span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">connection</span><span class="s1">, </span><span class="s2">schema</span><span class="s1">, </span><span class="s2">collection</span><span class="s1">);</span>
+<a name="l572"><span class="ln">572  </span></a>      <span class="s3">// do not cache the sub model</span>
+<a name="l573"><span class="ln">573  </span></a>      <span class="s4">return </span><span class="s2">sub</span><span class="s1">;</span>
+<a name="l574"><span class="ln">574  </span></a>    <span class="s1">}</span>
+<a name="l575"><span class="ln">575  </span></a>    <span class="s4">return </span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">models</span><span class="s1">[</span><span class="s2">name</span><span class="s1">];</span>
+<a name="l576"><span class="ln">576  </span></a>  <span class="s1">}</span>
+<a name="l577"><span class="ln">577  </span></a>  <span class="s4">if </span><span class="s1">(</span><span class="s2">schema </span><span class="s1">== </span><span class="s4">null</span><span class="s1">) {</span>
+<a name="l578"><span class="ln">578  </span></a>    <span class="s4">throw new </span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">Error</span><span class="s1">.</span><span class="s2">MissingSchemaError</span><span class="s1">(</span><span class="s2">name</span><span class="s1">);</span>
+<a name="l579"><span class="ln">579  </span></a>  <span class="s1">}</span>
+<a name="l580"><span class="ln">580  </span></a>
+<a name="l581"><span class="ln">581  </span></a>  <span class="s4">const </span><span class="s2">model </span><span class="s1">= </span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">_model</span><span class="s1">(</span><span class="s2">name</span><span class="s1">, </span><span class="s2">schema</span><span class="s1">, </span><span class="s2">collection</span><span class="s1">, </span><span class="s2">options</span><span class="s1">);</span>
+<a name="l582"><span class="ln">582  </span></a>  <span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">connection</span><span class="s1">.</span><span class="s2">models</span><span class="s1">[</span><span class="s2">name</span><span class="s1">] = </span><span class="s2">model</span><span class="s1">;</span>
+<a name="l583"><span class="ln">583  </span></a>  <span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">models</span><span class="s1">[</span><span class="s2">name</span><span class="s1">] = </span><span class="s2">model</span><span class="s1">;</span>
+<a name="l584"><span class="ln">584  </span></a>
+<a name="l585"><span class="ln">585  </span></a>  <span class="s4">return </span><span class="s2">model</span><span class="s1">;</span>
+<a name="l586"><span class="ln">586  </span></a><span class="s1">};</span>
+<a name="l587"><span class="ln">587  </span></a>
+<a name="l588"><span class="ln">588  </span></a><span class="s3">/*! 
+<a name="l589"><span class="ln">589  </span></a> * ignore 
+<a name="l590"><span class="ln">590  </span></a> */</span>
+<a name="l591"><span class="ln">591  </span></a>
+<a name="l592"><span class="ln">592  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">_model </span><span class="s1">= </span><span class="s4">function</span><span class="s1">(</span><span class="s2">name</span><span class="s1">, </span><span class="s2">schema</span><span class="s1">, </span><span class="s2">collection</span><span class="s1">, </span><span class="s2">options</span><span class="s1">) {</span>
+<a name="l593"><span class="ln">593  </span></a>  <span class="s4">const </span><span class="s2">_mongoose </span><span class="s1">= </span><span class="s4">this instanceof </span><span class="s2">Mongoose </span><span class="s1">? </span><span class="s4">this </span><span class="s1">: </span><span class="s2">mongoose</span><span class="s1">;</span>
+<a name="l594"><span class="ln">594  </span></a>
+<a name="l595"><span class="ln">595  </span></a>  <span class="s4">let </span><span class="s2">model</span><span class="s1">;</span>
+<a name="l596"><span class="ln">596  </span></a>  <span class="s4">if </span><span class="s1">(</span><span class="s4">typeof </span><span class="s2">name </span><span class="s1">=== </span><span class="s0">'function'</span><span class="s1">) {</span>
+<a name="l597"><span class="ln">597  </span></a>    <span class="s2">model </span><span class="s1">= </span><span class="s2">name</span><span class="s1">;</span>
+<a name="l598"><span class="ln">598  </span></a>    <span class="s2">name </span><span class="s1">= </span><span class="s2">model</span><span class="s1">.</span><span class="s2">name</span><span class="s1">;</span>
+<a name="l599"><span class="ln">599  </span></a>    <span class="s4">if </span><span class="s1">(!(</span><span class="s2">model</span><span class="s1">.</span><span class="s2">prototype </span><span class="s4">instanceof </span><span class="s2">Model</span><span class="s1">)) {</span>
+<a name="l600"><span class="ln">600  </span></a>      <span class="s4">throw new </span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">Error</span><span class="s1">(</span><span class="s0">'The provided class ' </span><span class="s1">+ </span><span class="s2">name </span><span class="s1">+ </span><span class="s0">' must extend Model'</span><span class="s1">);</span>
+<a name="l601"><span class="ln">601  </span></a>    <span class="s1">}</span>
+<a name="l602"><span class="ln">602  </span></a>  <span class="s1">}</span>
+<a name="l603"><span class="ln">603  </span></a>
+<a name="l604"><span class="ln">604  </span></a>  <span class="s4">if </span><span class="s1">(</span><span class="s2">schema</span><span class="s1">) {</span>
+<a name="l605"><span class="ln">605  </span></a>    <span class="s4">if </span><span class="s1">(</span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">get</span><span class="s1">(</span><span class="s0">'cloneSchemas'</span><span class="s1">)) {</span>
+<a name="l606"><span class="ln">606  </span></a>      <span class="s2">schema </span><span class="s1">= </span><span class="s2">schema</span><span class="s1">.</span><span class="s2">clone</span><span class="s1">();</span>
+<a name="l607"><span class="ln">607  </span></a>    <span class="s1">}</span>
+<a name="l608"><span class="ln">608  </span></a>    <span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">_applyPlugins</span><span class="s1">(</span><span class="s2">schema</span><span class="s1">);</span>
+<a name="l609"><span class="ln">609  </span></a>  <span class="s1">}</span>
+<a name="l610"><span class="ln">610  </span></a>
+<a name="l611"><span class="ln">611  </span></a>  <span class="s3">// Apply relevant &quot;global&quot; options to the schema</span>
+<a name="l612"><span class="ln">612  </span></a>  <span class="s4">if </span><span class="s1">(</span><span class="s2">schema </span><span class="s1">== </span><span class="s4">null </span><span class="s1">|| !(</span><span class="s0">'pluralization' </span><span class="s4">in </span><span class="s2">schema</span><span class="s1">.</span><span class="s2">options</span><span class="s1">)) {</span>
+<a name="l613"><span class="ln">613  </span></a>    <span class="s2">schema</span><span class="s1">.</span><span class="s2">options</span><span class="s1">.</span><span class="s2">pluralization </span><span class="s1">= </span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">options</span><span class="s1">.</span><span class="s2">pluralization</span><span class="s1">;</span>
+<a name="l614"><span class="ln">614  </span></a>  <span class="s1">}</span>
+<a name="l615"><span class="ln">615  </span></a>
+<a name="l616"><span class="ln">616  </span></a>  <span class="s4">if </span><span class="s1">(!</span><span class="s2">collection</span><span class="s1">) {</span>
+<a name="l617"><span class="ln">617  </span></a>    <span class="s2">collection </span><span class="s1">= </span><span class="s2">schema</span><span class="s1">.</span><span class="s2">get</span><span class="s1">(</span><span class="s0">'collection'</span><span class="s1">) ||</span>
+<a name="l618"><span class="ln">618  </span></a>      <span class="s2">utils</span><span class="s1">.</span><span class="s2">toCollectionName</span><span class="s1">(</span><span class="s2">name</span><span class="s1">, </span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">pluralize</span><span class="s1">());</span>
+<a name="l619"><span class="ln">619  </span></a>  <span class="s1">}</span>
+<a name="l620"><span class="ln">620  </span></a>
+<a name="l621"><span class="ln">621  </span></a>  <span class="s4">const </span><span class="s2">connection </span><span class="s1">= </span><span class="s2">options</span><span class="s1">.</span><span class="s2">connection </span><span class="s1">|| </span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">connection</span><span class="s1">;</span>
+<a name="l622"><span class="ln">622  </span></a>  <span class="s2">model </span><span class="s1">= </span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">Model</span><span class="s1">.</span><span class="s2">compile</span><span class="s1">(</span><span class="s2">model </span><span class="s1">|| </span><span class="s2">name</span><span class="s1">, </span><span class="s2">schema</span><span class="s1">, </span><span class="s2">collection</span><span class="s1">, </span><span class="s2">connection</span><span class="s1">, </span><span class="s2">_mongoose</span><span class="s1">);</span>
+<a name="l623"><span class="ln">623  </span></a>  <span class="s3">// Errors handled internally, so safe to ignore error</span>
+<a name="l624"><span class="ln">624  </span></a>  <span class="s2">model</span><span class="s1">.</span><span class="s2">init</span><span class="s1">().</span><span class="s2">catch</span><span class="s1">(</span><span class="s4">function </span><span class="s2">$modelInitNoop</span><span class="s1">() {});</span>
+<a name="l625"><span class="ln">625  </span></a>
+<a name="l626"><span class="ln">626  </span></a>  <span class="s2">connection</span><span class="s1">.</span><span class="s2">emit</span><span class="s1">(</span><span class="s0">'model'</span><span class="s1">, </span><span class="s2">model</span><span class="s1">);</span>
+<a name="l627"><span class="ln">627  </span></a>
+<a name="l628"><span class="ln">628  </span></a>  <span class="s4">if </span><span class="s1">(</span><span class="s2">schema</span><span class="s1">.</span><span class="s2">_applyDiscriminators </span><span class="s1">!= </span><span class="s4">null</span><span class="s1">) {</span>
+<a name="l629"><span class="ln">629  </span></a>    <span class="s4">for </span><span class="s1">(</span><span class="s4">const </span><span class="s2">disc of schema</span><span class="s1">.</span><span class="s2">_applyDiscriminators</span><span class="s1">.</span><span class="s2">keys</span><span class="s1">()) {</span>
+<a name="l630"><span class="ln">630  </span></a>      <span class="s2">model</span><span class="s1">.</span><span class="s2">discriminator</span><span class="s1">(</span><span class="s2">disc</span><span class="s1">, </span><span class="s2">schema</span><span class="s1">.</span><span class="s2">_applyDiscriminators</span><span class="s1">.</span><span class="s2">get</span><span class="s1">(</span><span class="s2">disc</span><span class="s1">));</span>
+<a name="l631"><span class="ln">631  </span></a>    <span class="s1">}</span>
+<a name="l632"><span class="ln">632  </span></a>  <span class="s1">}</span>
+<a name="l633"><span class="ln">633  </span></a>
+<a name="l634"><span class="ln">634  </span></a>  <span class="s2">applyEmbeddedDiscriminators</span><span class="s1">(</span><span class="s2">schema</span><span class="s1">);</span>
+<a name="l635"><span class="ln">635  </span></a>
+<a name="l636"><span class="ln">636  </span></a>  <span class="s4">return </span><span class="s2">model</span><span class="s1">;</span>
+<a name="l637"><span class="ln">637  </span></a><span class="s1">};</span>
+<a name="l638"><span class="ln">638  </span></a>
+<a name="l639"><span class="ln">639  </span></a><span class="s6">/**</span>
+<a name="l640"><span class="ln">640  </span></a> <span class="s6">* Removes the model named `name` from the default connection, if it exists.</span>
+<a name="l641"><span class="ln">641  </span></a> <span class="s6">* You can use this function to clean up any models you created in your tests to</span>
+<a name="l642"><span class="ln">642  </span></a> <span class="s6">* prevent OverwriteModelErrors.</span>
+<a name="l643"><span class="ln">643  </span></a> <span class="s6">*</span>
+<a name="l644"><span class="ln">644  </span></a> <span class="s6">* Equivalent to `mongoose.connection.deleteModel(name)`.</span>
+<a name="l645"><span class="ln">645  </span></a> <span class="s6">*</span>
+<a name="l646"><span class="ln">646  </span></a> <span class="s6">* #### Example:</span>
+<a name="l647"><span class="ln">647  </span></a> <span class="s6">*</span>
+<a name="l648"><span class="ln">648  </span></a> <span class="s6">*     mongoose.model('User', new Schema({ name: String }));</span>
+<a name="l649"><span class="ln">649  </span></a> <span class="s6">*     console.log(mongoose.model('User')); // Model object</span>
+<a name="l650"><span class="ln">650  </span></a> <span class="s6">*     mongoose.deleteModel('User');</span>
+<a name="l651"><span class="ln">651  </span></a> <span class="s6">*     console.log(mongoose.model('User')); // undefined</span>
+<a name="l652"><span class="ln">652  </span></a> <span class="s6">*</span>
+<a name="l653"><span class="ln">653  </span></a> <span class="s6">*     // Usually useful in a Mocha `afterEach()` hook</span>
+<a name="l654"><span class="ln">654  </span></a> <span class="s6">*     afterEach(function() {</span>
+<a name="l655"><span class="ln">655  </span></a> <span class="s6">*       mongoose.deleteModel(/.+/); // Delete every model</span>
+<a name="l656"><span class="ln">656  </span></a> <span class="s6">*     });</span>
+<a name="l657"><span class="ln">657  </span></a> <span class="s6">*</span>
+<a name="l658"><span class="ln">658  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l659"><span class="ln">659  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{String|RegExp} name if string, the name of the model to remove. If regexp, removes all models whose name matches the regexp.</span>
+<a name="l660"><span class="ln">660  </span></a> <span class="s6">* </span><span class="s7">@return </span><span class="s6">{Mongoose} this</span>
+<a name="l661"><span class="ln">661  </span></a> <span class="s6">*/</span>
+<a name="l662"><span class="ln">662  </span></a>
+<a name="l663"><span class="ln">663  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">deleteModel </span><span class="s1">= </span><span class="s4">function</span><span class="s1">(</span><span class="s2">name</span><span class="s1">) {</span>
+<a name="l664"><span class="ln">664  </span></a>  <span class="s4">const </span><span class="s2">_mongoose </span><span class="s1">= </span><span class="s4">this instanceof </span><span class="s2">Mongoose </span><span class="s1">? </span><span class="s4">this </span><span class="s1">: </span><span class="s2">mongoose</span><span class="s1">;</span>
+<a name="l665"><span class="ln">665  </span></a>
+<a name="l666"><span class="ln">666  </span></a>  <span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">connection</span><span class="s1">.</span><span class="s2">deleteModel</span><span class="s1">(</span><span class="s2">name</span><span class="s1">);</span>
+<a name="l667"><span class="ln">667  </span></a>  <span class="s4">delete </span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">models</span><span class="s1">[</span><span class="s2">name</span><span class="s1">];</span>
+<a name="l668"><span class="ln">668  </span></a>  <span class="s4">return </span><span class="s2">_mongoose</span><span class="s1">;</span>
+<a name="l669"><span class="ln">669  </span></a><span class="s1">};</span>
+<a name="l670"><span class="ln">670  </span></a>
+<a name="l671"><span class="ln">671  </span></a><span class="s6">/**</span>
+<a name="l672"><span class="ln">672  </span></a> <span class="s6">* Returns an array of model names created on this instance of Mongoose.</span>
+<a name="l673"><span class="ln">673  </span></a> <span class="s6">*</span>
+<a name="l674"><span class="ln">674  </span></a> <span class="s6">* #### Note:</span>
+<a name="l675"><span class="ln">675  </span></a> <span class="s6">*</span>
+<a name="l676"><span class="ln">676  </span></a> <span class="s6">* _Does not include names of models created using `connection.model()`._</span>
+<a name="l677"><span class="ln">677  </span></a> <span class="s6">*</span>
+<a name="l678"><span class="ln">678  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l679"><span class="ln">679  </span></a> <span class="s6">* </span><span class="s7">@return </span><span class="s6">{Array}</span>
+<a name="l680"><span class="ln">680  </span></a> <span class="s6">*/</span>
+<a name="l681"><span class="ln">681  </span></a>
+<a name="l682"><span class="ln">682  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">modelNames </span><span class="s1">= </span><span class="s4">function</span><span class="s1">() {</span>
+<a name="l683"><span class="ln">683  </span></a>  <span class="s4">const </span><span class="s2">_mongoose </span><span class="s1">= </span><span class="s4">this instanceof </span><span class="s2">Mongoose </span><span class="s1">? </span><span class="s4">this </span><span class="s1">: </span><span class="s2">mongoose</span><span class="s1">;</span>
+<a name="l684"><span class="ln">684  </span></a>
+<a name="l685"><span class="ln">685  </span></a>  <span class="s4">const </span><span class="s2">names </span><span class="s1">= </span><span class="s2">Object</span><span class="s1">.</span><span class="s2">keys</span><span class="s1">(</span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">models</span><span class="s1">);</span>
+<a name="l686"><span class="ln">686  </span></a>  <span class="s4">return </span><span class="s2">names</span><span class="s1">;</span>
+<a name="l687"><span class="ln">687  </span></a><span class="s1">};</span>
+<a name="l688"><span class="ln">688  </span></a>
+<a name="l689"><span class="ln">689  </span></a><span class="s6">/**</span>
+<a name="l690"><span class="ln">690  </span></a> <span class="s6">* Applies global plugins to `schema`.</span>
+<a name="l691"><span class="ln">691  </span></a> <span class="s6">*</span>
+<a name="l692"><span class="ln">692  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Schema} schema</span>
+<a name="l693"><span class="ln">693  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">private</span>
+<a name="l694"><span class="ln">694  </span></a> <span class="s6">*/</span>
+<a name="l695"><span class="ln">695  </span></a>
+<a name="l696"><span class="ln">696  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">_applyPlugins </span><span class="s1">= </span><span class="s4">function</span><span class="s1">(</span><span class="s2">schema</span><span class="s1">, </span><span class="s2">options</span><span class="s1">) {</span>
+<a name="l697"><span class="ln">697  </span></a>  <span class="s4">const </span><span class="s2">_mongoose </span><span class="s1">= </span><span class="s4">this instanceof </span><span class="s2">Mongoose </span><span class="s1">? </span><span class="s4">this </span><span class="s1">: </span><span class="s2">mongoose</span><span class="s1">;</span>
+<a name="l698"><span class="ln">698  </span></a>
+<a name="l699"><span class="ln">699  </span></a>  <span class="s2">options </span><span class="s1">= </span><span class="s2">options </span><span class="s1">|| {};</span>
+<a name="l700"><span class="ln">700  </span></a>  <span class="s2">options</span><span class="s1">.</span><span class="s2">applyPluginsToDiscriminators </span><span class="s1">= </span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">options </span><span class="s1">&amp;&amp; </span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">options</span><span class="s1">.</span><span class="s2">applyPluginsToDiscriminators </span><span class="s1">|| </span><span class="s4">false</span><span class="s1">;</span>
+<a name="l701"><span class="ln">701  </span></a>  <span class="s2">options</span><span class="s1">.</span><span class="s2">applyPluginsToChildSchemas </span><span class="s1">= </span><span class="s4">typeof </span><span class="s1">(</span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">options </span><span class="s1">&amp;&amp; </span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">options</span><span class="s1">.</span><span class="s2">applyPluginsToChildSchemas</span><span class="s1">) === </span><span class="s0">'boolean' </span><span class="s1">?</span>
+<a name="l702"><span class="ln">702  </span></a>    <span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">options</span><span class="s1">.</span><span class="s2">applyPluginsToChildSchemas </span><span class="s1">:</span>
+<a name="l703"><span class="ln">703  </span></a>    <span class="s4">true</span><span class="s1">;</span>
+<a name="l704"><span class="ln">704  </span></a>  <span class="s2">applyPlugins</span><span class="s1">(</span><span class="s2">schema</span><span class="s1">, </span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">plugins</span><span class="s1">, </span><span class="s2">options</span><span class="s1">, </span><span class="s0">'$globalPluginsApplied'</span><span class="s1">);</span>
+<a name="l705"><span class="ln">705  </span></a><span class="s1">};</span>
+<a name="l706"><span class="ln">706  </span></a>
+<a name="l707"><span class="ln">707  </span></a><span class="s6">/**</span>
+<a name="l708"><span class="ln">708  </span></a> <span class="s6">* Declares a global plugin executed on all Schemas.</span>
+<a name="l709"><span class="ln">709  </span></a> <span class="s6">*</span>
+<a name="l710"><span class="ln">710  </span></a> <span class="s6">* Equivalent to calling `.plugin(fn)` on each Schema you create.</span>
+<a name="l711"><span class="ln">711  </span></a> <span class="s6">*</span>
+<a name="l712"><span class="ln">712  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Function} fn plugin callback</span>
+<a name="l713"><span class="ln">713  </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Object} [opts] optional options</span>
+<a name="l714"><span class="ln">714  </span></a> <span class="s6">* </span><span class="s7">@return </span><span class="s6">{Mongoose} this</span>
+<a name="l715"><span class="ln">715  </span></a> <span class="s6">* </span><span class="s7">@see </span><span class="s6">plugins https://mongoosejs.com/docs/plugins.html</span>
+<a name="l716"><span class="ln">716  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l717"><span class="ln">717  </span></a> <span class="s6">*/</span>
+<a name="l718"><span class="ln">718  </span></a>
+<a name="l719"><span class="ln">719  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">plugin </span><span class="s1">= </span><span class="s4">function</span><span class="s1">(</span><span class="s2">fn</span><span class="s1">, </span><span class="s2">opts</span><span class="s1">) {</span>
+<a name="l720"><span class="ln">720  </span></a>  <span class="s4">const </span><span class="s2">_mongoose </span><span class="s1">= </span><span class="s4">this instanceof </span><span class="s2">Mongoose </span><span class="s1">? </span><span class="s4">this </span><span class="s1">: </span><span class="s2">mongoose</span><span class="s1">;</span>
+<a name="l721"><span class="ln">721  </span></a>
+<a name="l722"><span class="ln">722  </span></a>  <span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">plugins</span><span class="s1">.</span><span class="s2">push</span><span class="s1">([</span><span class="s2">fn</span><span class="s1">, </span><span class="s2">opts</span><span class="s1">]);</span>
+<a name="l723"><span class="ln">723  </span></a>  <span class="s4">return </span><span class="s2">_mongoose</span><span class="s1">;</span>
+<a name="l724"><span class="ln">724  </span></a><span class="s1">};</span>
+<a name="l725"><span class="ln">725  </span></a>
+<a name="l726"><span class="ln">726  </span></a><span class="s6">/**</span>
+<a name="l727"><span class="ln">727  </span></a> <span class="s6">* The Mongoose module's default connection. Equivalent to `mongoose.connections[0]`, see [`connections`](https://mongoosejs.com/docs/api/mongoose.html#Mongoose.prototype.connections).</span>
+<a name="l728"><span class="ln">728  </span></a> <span class="s6">*</span>
+<a name="l729"><span class="ln">729  </span></a> <span class="s6">* #### Example:</span>
+<a name="l730"><span class="ln">730  </span></a> <span class="s6">*</span>
+<a name="l731"><span class="ln">731  </span></a> <span class="s6">*     const mongoose = require('mongoose');</span>
+<a name="l732"><span class="ln">732  </span></a> <span class="s6">*     mongoose.connect(...);</span>
+<a name="l733"><span class="ln">733  </span></a> <span class="s6">*     mongoose.connection.on('error', cb);</span>
+<a name="l734"><span class="ln">734  </span></a> <span class="s6">*</span>
+<a name="l735"><span class="ln">735  </span></a> <span class="s6">* This is the connection used by default for every model created using [mongoose.model](https://mongoosejs.com/docs/api/mongoose.html#Mongoose.prototype.model()).</span>
+<a name="l736"><span class="ln">736  </span></a> <span class="s6">*</span>
+<a name="l737"><span class="ln">737  </span></a> <span class="s6">* To create a new connection, use [`createConnection()`](https://mongoosejs.com/docs/api/mongoose.html#Mongoose.prototype.createConnection()).</span>
+<a name="l738"><span class="ln">738  </span></a> <span class="s6">*</span>
+<a name="l739"><span class="ln">739  </span></a> <span class="s6">* </span><span class="s7">@memberOf </span><span class="s6">Mongoose</span>
+<a name="l740"><span class="ln">740  </span></a> <span class="s6">* </span><span class="s7">@instance</span>
+<a name="l741"><span class="ln">741  </span></a> <span class="s6">* </span><span class="s7">@property </span><span class="s6">{Connection} connection</span>
+<a name="l742"><span class="ln">742  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l743"><span class="ln">743  </span></a> <span class="s6">*/</span>
+<a name="l744"><span class="ln">744  </span></a>
+<a name="l745"><span class="ln">745  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">__defineGetter__</span><span class="s1">(</span><span class="s0">'connection'</span><span class="s1">, </span><span class="s4">function</span><span class="s1">() {</span>
+<a name="l746"><span class="ln">746  </span></a>  <span class="s4">return this</span><span class="s1">.</span><span class="s2">connections</span><span class="s1">[</span><span class="s8">0</span><span class="s1">];</span>
+<a name="l747"><span class="ln">747  </span></a><span class="s1">});</span>
+<a name="l748"><span class="ln">748  </span></a>
+<a name="l749"><span class="ln">749  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">__defineSetter__</span><span class="s1">(</span><span class="s0">'connection'</span><span class="s1">, </span><span class="s4">function</span><span class="s1">(</span><span class="s2">v</span><span class="s1">) {</span>
+<a name="l750"><span class="ln">750  </span></a>  <span class="s4">if </span><span class="s1">(</span><span class="s2">v </span><span class="s4">instanceof this</span><span class="s1">.</span><span class="s2">__driver</span><span class="s1">.</span><span class="s2">Connection</span><span class="s1">) {</span>
+<a name="l751"><span class="ln">751  </span></a>    <span class="s4">this</span><span class="s1">.</span><span class="s2">connections</span><span class="s1">[</span><span class="s8">0</span><span class="s1">] = </span><span class="s2">v</span><span class="s1">;</span>
+<a name="l752"><span class="ln">752  </span></a>    <span class="s4">this</span><span class="s1">.</span><span class="s2">models </span><span class="s1">= </span><span class="s2">v</span><span class="s1">.</span><span class="s2">models</span><span class="s1">;</span>
+<a name="l753"><span class="ln">753  </span></a>  <span class="s1">}</span>
+<a name="l754"><span class="ln">754  </span></a><span class="s1">});</span>
+<a name="l755"><span class="ln">755  </span></a>
+<a name="l756"><span class="ln">756  </span></a><span class="s6">/**</span>
+<a name="l757"><span class="ln">757  </span></a> <span class="s6">* An array containing all [connections](connection.html) associated with this</span>
+<a name="l758"><span class="ln">758  </span></a> <span class="s6">* Mongoose instance. By default, there is 1 connection. Calling</span>
+<a name="l759"><span class="ln">759  </span></a> <span class="s6">* [`createConnection()`](https://mongoosejs.com/docs/api/mongoose.html#Mongoose.prototype.createConnection()) adds a connection</span>
+<a name="l760"><span class="ln">760  </span></a> <span class="s6">* to this array.</span>
+<a name="l761"><span class="ln">761  </span></a> <span class="s6">*</span>
+<a name="l762"><span class="ln">762  </span></a> <span class="s6">* #### Example:</span>
+<a name="l763"><span class="ln">763  </span></a> <span class="s6">*</span>
+<a name="l764"><span class="ln">764  </span></a> <span class="s6">*     const mongoose = require('mongoose');</span>
+<a name="l765"><span class="ln">765  </span></a> <span class="s6">*     mongoose.connections.length; // 1, just the default connection</span>
+<a name="l766"><span class="ln">766  </span></a> <span class="s6">*     mongoose.connections[0] === mongoose.connection; // true</span>
+<a name="l767"><span class="ln">767  </span></a> <span class="s6">*</span>
+<a name="l768"><span class="ln">768  </span></a> <span class="s6">*     mongoose.createConnection('mongodb://127.0.0.1:27017/test');</span>
+<a name="l769"><span class="ln">769  </span></a> <span class="s6">*     mongoose.connections.length; // 2</span>
+<a name="l770"><span class="ln">770  </span></a> <span class="s6">*</span>
+<a name="l771"><span class="ln">771  </span></a> <span class="s6">* </span><span class="s7">@memberOf </span><span class="s6">Mongoose</span>
+<a name="l772"><span class="ln">772  </span></a> <span class="s6">* </span><span class="s7">@instance</span>
+<a name="l773"><span class="ln">773  </span></a> <span class="s6">* </span><span class="s7">@property </span><span class="s6">{Array} connections</span>
+<a name="l774"><span class="ln">774  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l775"><span class="ln">775  </span></a> <span class="s6">*/</span>
+<a name="l776"><span class="ln">776  </span></a>
+<a name="l777"><span class="ln">777  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">connections</span><span class="s1">;</span>
+<a name="l778"><span class="ln">778  </span></a>
+<a name="l779"><span class="ln">779  </span></a><span class="s6">/**</span>
+<a name="l780"><span class="ln">780  </span></a> <span class="s6">* An integer containing the value of the next connection id. Calling</span>
+<a name="l781"><span class="ln">781  </span></a> <span class="s6">* [`createConnection()`](https://mongoosejs.com/docs/api/mongoose.html#Mongoose.prototype.createConnection()) increments</span>
+<a name="l782"><span class="ln">782  </span></a> <span class="s6">* this value.</span>
+<a name="l783"><span class="ln">783  </span></a> <span class="s6">*</span>
+<a name="l784"><span class="ln">784  </span></a> <span class="s6">* #### Example:</span>
+<a name="l785"><span class="ln">785  </span></a> <span class="s6">*</span>
+<a name="l786"><span class="ln">786  </span></a> <span class="s6">*     const mongoose = require('mongoose');</span>
+<a name="l787"><span class="ln">787  </span></a> <span class="s6">*     mongoose.createConnection(); // id `0`, `nextConnectionId` becomes `1`</span>
+<a name="l788"><span class="ln">788  </span></a> <span class="s6">*     mongoose.createConnection(); // id `1`, `nextConnectionId` becomes `2`</span>
+<a name="l789"><span class="ln">789  </span></a> <span class="s6">*     mongoose.connections[0].destroy() // Removes connection with id `0`</span>
+<a name="l790"><span class="ln">790  </span></a> <span class="s6">*     mongoose.createConnection(); // id `2`, `nextConnectionId` becomes `3`</span>
+<a name="l791"><span class="ln">791  </span></a> <span class="s6">*</span>
+<a name="l792"><span class="ln">792  </span></a> <span class="s6">* </span><span class="s7">@memberOf </span><span class="s6">Mongoose</span>
+<a name="l793"><span class="ln">793  </span></a> <span class="s6">* </span><span class="s7">@instance</span>
+<a name="l794"><span class="ln">794  </span></a> <span class="s6">* </span><span class="s7">@property </span><span class="s6">{Number} nextConnectionId</span>
+<a name="l795"><span class="ln">795  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">private</span>
+<a name="l796"><span class="ln">796  </span></a> <span class="s6">*/</span>
+<a name="l797"><span class="ln">797  </span></a>
+<a name="l798"><span class="ln">798  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">nextConnectionId</span><span class="s1">;</span>
+<a name="l799"><span class="ln">799  </span></a>
+<a name="l800"><span class="ln">800  </span></a><span class="s6">/**</span>
+<a name="l801"><span class="ln">801  </span></a> <span class="s6">* The Mongoose Aggregate constructor</span>
+<a name="l802"><span class="ln">802  </span></a> <span class="s6">*</span>
+<a name="l803"><span class="ln">803  </span></a> <span class="s6">* </span><span class="s7">@method </span><span class="s6">Aggregate</span>
+<a name="l804"><span class="ln">804  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l805"><span class="ln">805  </span></a> <span class="s6">*/</span>
+<a name="l806"><span class="ln">806  </span></a>
+<a name="l807"><span class="ln">807  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">Aggregate </span><span class="s1">= </span><span class="s2">Aggregate</span><span class="s1">;</span>
+<a name="l808"><span class="ln">808  </span></a>
+<a name="l809"><span class="ln">809  </span></a><span class="s6">/**</span>
+<a name="l810"><span class="ln">810  </span></a> <span class="s6">* The Mongoose Collection constructor</span>
+<a name="l811"><span class="ln">811  </span></a> <span class="s6">*</span>
+<a name="l812"><span class="ln">812  </span></a> <span class="s6">* </span><span class="s7">@memberOf </span><span class="s6">Mongoose</span>
+<a name="l813"><span class="ln">813  </span></a> <span class="s6">* </span><span class="s7">@instance</span>
+<a name="l814"><span class="ln">814  </span></a> <span class="s6">* </span><span class="s7">@method </span><span class="s6">Collection</span>
+<a name="l815"><span class="ln">815  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l816"><span class="ln">816  </span></a> <span class="s6">*/</span>
+<a name="l817"><span class="ln">817  </span></a>
+<a name="l818"><span class="ln">818  </span></a><span class="s2">Object</span><span class="s1">.</span><span class="s2">defineProperty</span><span class="s1">(</span><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">, </span><span class="s0">'Collection'</span><span class="s1">, {</span>
+<a name="l819"><span class="ln">819  </span></a>  <span class="s2">get</span><span class="s1">: </span><span class="s4">function</span><span class="s1">() {</span>
+<a name="l820"><span class="ln">820  </span></a>    <span class="s4">return this</span><span class="s1">.</span><span class="s2">__driver</span><span class="s1">.</span><span class="s2">Collection</span><span class="s1">;</span>
+<a name="l821"><span class="ln">821  </span></a>  <span class="s1">},</span>
+<a name="l822"><span class="ln">822  </span></a>  <span class="s2">set</span><span class="s1">: </span><span class="s4">function</span><span class="s1">(</span><span class="s2">Collection</span><span class="s1">) {</span>
+<a name="l823"><span class="ln">823  </span></a>    <span class="s4">this</span><span class="s1">.</span><span class="s2">__driver</span><span class="s1">.</span><span class="s2">Collection </span><span class="s1">= </span><span class="s2">Collection</span><span class="s1">;</span>
+<a name="l824"><span class="ln">824  </span></a>  <span class="s1">}</span>
+<a name="l825"><span class="ln">825  </span></a><span class="s1">});</span>
+<a name="l826"><span class="ln">826  </span></a>
+<a name="l827"><span class="ln">827  </span></a><span class="s6">/**</span>
+<a name="l828"><span class="ln">828  </span></a> <span class="s6">* The Mongoose [Connection](https://mongoosejs.com/docs/api/connection.html#Connection()) constructor</span>
+<a name="l829"><span class="ln">829  </span></a> <span class="s6">*</span>
+<a name="l830"><span class="ln">830  </span></a> <span class="s6">* </span><span class="s7">@memberOf </span><span class="s6">Mongoose</span>
+<a name="l831"><span class="ln">831  </span></a> <span class="s6">* </span><span class="s7">@instance</span>
+<a name="l832"><span class="ln">832  </span></a> <span class="s6">* </span><span class="s7">@method </span><span class="s6">Connection</span>
+<a name="l833"><span class="ln">833  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l834"><span class="ln">834  </span></a> <span class="s6">*/</span>
+<a name="l835"><span class="ln">835  </span></a>
+<a name="l836"><span class="ln">836  </span></a><span class="s2">Object</span><span class="s1">.</span><span class="s2">defineProperty</span><span class="s1">(</span><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">, </span><span class="s0">'Connection'</span><span class="s1">, {</span>
+<a name="l837"><span class="ln">837  </span></a>  <span class="s2">get</span><span class="s1">: </span><span class="s4">function</span><span class="s1">() {</span>
+<a name="l838"><span class="ln">838  </span></a>    <span class="s4">return this</span><span class="s1">.</span><span class="s2">__driver</span><span class="s1">.</span><span class="s2">Connection</span><span class="s1">;</span>
+<a name="l839"><span class="ln">839  </span></a>  <span class="s1">},</span>
+<a name="l840"><span class="ln">840  </span></a>  <span class="s2">set</span><span class="s1">: </span><span class="s4">function</span><span class="s1">(</span><span class="s2">Connection</span><span class="s1">) {</span>
+<a name="l841"><span class="ln">841  </span></a>    <span class="s4">if </span><span class="s1">(</span><span class="s2">Connection </span><span class="s1">=== </span><span class="s4">this</span><span class="s1">.</span><span class="s2">__driver</span><span class="s1">.</span><span class="s2">Connection</span><span class="s1">) {</span>
+<a name="l842"><span class="ln">842  </span></a>      <span class="s4">return</span><span class="s1">;</span>
+<a name="l843"><span class="ln">843  </span></a>    <span class="s1">}</span>
+<a name="l844"><span class="ln">844  </span></a>
+<a name="l845"><span class="ln">845  </span></a>    <span class="s4">this</span><span class="s1">.</span><span class="s2">__driver</span><span class="s1">.</span><span class="s2">Connection </span><span class="s1">= </span><span class="s2">Connection</span><span class="s1">;</span>
+<a name="l846"><span class="ln">846  </span></a>  <span class="s1">}</span>
+<a name="l847"><span class="ln">847  </span></a><span class="s1">});</span>
+<a name="l848"><span class="ln">848  </span></a>
+<a name="l849"><span class="ln">849  </span></a><span class="s6">/**</span>
+<a name="l850"><span class="ln">850  </span></a> <span class="s6">* The Mongoose version</span>
+<a name="l851"><span class="ln">851  </span></a> <span class="s6">*</span>
+<a name="l852"><span class="ln">852  </span></a> <span class="s6">* #### Example:</span>
+<a name="l853"><span class="ln">853  </span></a> <span class="s6">*</span>
+<a name="l854"><span class="ln">854  </span></a> <span class="s6">*     console.log(mongoose.version); // '5.x.x'</span>
+<a name="l855"><span class="ln">855  </span></a> <span class="s6">*</span>
+<a name="l856"><span class="ln">856  </span></a> <span class="s6">* </span><span class="s7">@property </span><span class="s6">version</span>
+<a name="l857"><span class="ln">857  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l858"><span class="ln">858  </span></a> <span class="s6">*/</span>
+<a name="l859"><span class="ln">859  </span></a>
+<a name="l860"><span class="ln">860  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">version </span><span class="s1">= </span><span class="s2">pkg</span><span class="s1">.</span><span class="s2">version</span><span class="s1">;</span>
+<a name="l861"><span class="ln">861  </span></a>
+<a name="l862"><span class="ln">862  </span></a><span class="s6">/**</span>
+<a name="l863"><span class="ln">863  </span></a> <span class="s6">* The Mongoose constructor</span>
+<a name="l864"><span class="ln">864  </span></a> <span class="s6">*</span>
+<a name="l865"><span class="ln">865  </span></a> <span class="s6">* The exports of the mongoose module is an instance of this class.</span>
+<a name="l866"><span class="ln">866  </span></a> <span class="s6">*</span>
+<a name="l867"><span class="ln">867  </span></a> <span class="s6">* #### Example:</span>
+<a name="l868"><span class="ln">868  </span></a> <span class="s6">*</span>
+<a name="l869"><span class="ln">869  </span></a> <span class="s6">*     const mongoose = require('mongoose');</span>
+<a name="l870"><span class="ln">870  </span></a> <span class="s6">*     const mongoose2 = new mongoose.Mongoose();</span>
+<a name="l871"><span class="ln">871  </span></a> <span class="s6">*</span>
+<a name="l872"><span class="ln">872  </span></a> <span class="s6">* </span><span class="s7">@method </span><span class="s6">Mongoose</span>
+<a name="l873"><span class="ln">873  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l874"><span class="ln">874  </span></a> <span class="s6">*/</span>
+<a name="l875"><span class="ln">875  </span></a>
+<a name="l876"><span class="ln">876  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">Mongoose </span><span class="s1">= </span><span class="s2">Mongoose</span><span class="s1">;</span>
+<a name="l877"><span class="ln">877  </span></a>
+<a name="l878"><span class="ln">878  </span></a><span class="s6">/**</span>
+<a name="l879"><span class="ln">879  </span></a> <span class="s6">* The Mongoose [Schema](https://mongoosejs.com/docs/api/schema.html#Schema()) constructor</span>
+<a name="l880"><span class="ln">880  </span></a> <span class="s6">*</span>
+<a name="l881"><span class="ln">881  </span></a> <span class="s6">* #### Example:</span>
+<a name="l882"><span class="ln">882  </span></a> <span class="s6">*</span>
+<a name="l883"><span class="ln">883  </span></a> <span class="s6">*     const mongoose = require('mongoose');</span>
+<a name="l884"><span class="ln">884  </span></a> <span class="s6">*     const Schema = mongoose.Schema;</span>
+<a name="l885"><span class="ln">885  </span></a> <span class="s6">*     const CatSchema = new Schema(..);</span>
+<a name="l886"><span class="ln">886  </span></a> <span class="s6">*</span>
+<a name="l887"><span class="ln">887  </span></a> <span class="s6">* </span><span class="s7">@method </span><span class="s6">Schema</span>
+<a name="l888"><span class="ln">888  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l889"><span class="ln">889  </span></a> <span class="s6">*/</span>
+<a name="l890"><span class="ln">890  </span></a>
+<a name="l891"><span class="ln">891  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">Schema </span><span class="s1">= </span><span class="s2">Schema</span><span class="s1">;</span>
+<a name="l892"><span class="ln">892  </span></a>
+<a name="l893"><span class="ln">893  </span></a><span class="s6">/**</span>
+<a name="l894"><span class="ln">894  </span></a> <span class="s6">* The Mongoose [SchemaType](https://mongoosejs.com/docs/api/schematype.html#SchemaType()) constructor</span>
+<a name="l895"><span class="ln">895  </span></a> <span class="s6">*</span>
+<a name="l896"><span class="ln">896  </span></a> <span class="s6">* </span><span class="s7">@method </span><span class="s6">SchemaType</span>
+<a name="l897"><span class="ln">897  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l898"><span class="ln">898  </span></a> <span class="s6">*/</span>
+<a name="l899"><span class="ln">899  </span></a>
+<a name="l900"><span class="ln">900  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">SchemaType </span><span class="s1">= </span><span class="s2">SchemaType</span><span class="s1">;</span>
+<a name="l901"><span class="ln">901  </span></a>
+<a name="l902"><span class="ln">902  </span></a><span class="s6">/**</span>
+<a name="l903"><span class="ln">903  </span></a> <span class="s6">* The various Mongoose SchemaTypes.</span>
+<a name="l904"><span class="ln">904  </span></a> <span class="s6">*</span>
+<a name="l905"><span class="ln">905  </span></a> <span class="s6">* #### Note:</span>
+<a name="l906"><span class="ln">906  </span></a> <span class="s6">*</span>
+<a name="l907"><span class="ln">907  </span></a> <span class="s6">* _Alias of mongoose.Schema.Types for backwards compatibility._</span>
+<a name="l908"><span class="ln">908  </span></a> <span class="s6">*</span>
+<a name="l909"><span class="ln">909  </span></a> <span class="s6">* </span><span class="s7">@property </span><span class="s6">SchemaTypes</span>
+<a name="l910"><span class="ln">910  </span></a> <span class="s6">* </span><span class="s7">@see </span><span class="s6">Schema.SchemaTypes https://mongoosejs.com/docs/schematypes.html</span>
+<a name="l911"><span class="ln">911  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l912"><span class="ln">912  </span></a> <span class="s6">*/</span>
+<a name="l913"><span class="ln">913  </span></a>
+<a name="l914"><span class="ln">914  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">SchemaTypes </span><span class="s1">= </span><span class="s2">Schema</span><span class="s1">.</span><span class="s2">Types</span><span class="s1">;</span>
+<a name="l915"><span class="ln">915  </span></a>
+<a name="l916"><span class="ln">916  </span></a><span class="s6">/**</span>
+<a name="l917"><span class="ln">917  </span></a> <span class="s6">* The Mongoose [VirtualType](https://mongoosejs.com/docs/api/virtualtype.html#VirtualType()) constructor</span>
+<a name="l918"><span class="ln">918  </span></a> <span class="s6">*</span>
+<a name="l919"><span class="ln">919  </span></a> <span class="s6">* </span><span class="s7">@method </span><span class="s6">VirtualType</span>
+<a name="l920"><span class="ln">920  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l921"><span class="ln">921  </span></a> <span class="s6">*/</span>
+<a name="l922"><span class="ln">922  </span></a>
+<a name="l923"><span class="ln">923  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">VirtualType </span><span class="s1">= </span><span class="s2">VirtualType</span><span class="s1">;</span>
+<a name="l924"><span class="ln">924  </span></a>
+<a name="l925"><span class="ln">925  </span></a><span class="s6">/**</span>
+<a name="l926"><span class="ln">926  </span></a> <span class="s6">* The various Mongoose Types.</span>
+<a name="l927"><span class="ln">927  </span></a> <span class="s6">*</span>
+<a name="l928"><span class="ln">928  </span></a> <span class="s6">* #### Example:</span>
+<a name="l929"><span class="ln">929  </span></a> <span class="s6">*</span>
+<a name="l930"><span class="ln">930  </span></a> <span class="s6">*     const mongoose = require('mongoose');</span>
+<a name="l931"><span class="ln">931  </span></a> <span class="s6">*     const array = mongoose.Types.Array;</span>
+<a name="l932"><span class="ln">932  </span></a> <span class="s6">*</span>
+<a name="l933"><span class="ln">933  </span></a> <span class="s6">* #### Types:</span>
+<a name="l934"><span class="ln">934  </span></a> <span class="s6">*</span>
+<a name="l935"><span class="ln">935  </span></a> <span class="s6">* - [Array](https://mongoosejs.com/docs/schematypes.html#arrays)</span>
+<a name="l936"><span class="ln">936  </span></a> <span class="s6">* - [Buffer](https://mongoosejs.com/docs/schematypes.html#buffers)</span>
+<a name="l937"><span class="ln">937  </span></a> <span class="s6">* - [Embedded](https://mongoosejs.com/docs/schematypes.html#schemas)</span>
+<a name="l938"><span class="ln">938  </span></a> <span class="s6">* - [DocumentArray](https://mongoosejs.com/docs/api/documentarraypath.html)</span>
+<a name="l939"><span class="ln">939  </span></a> <span class="s6">* - [Decimal128](https://mongoosejs.com/docs/api/mongoose.html#Mongoose.prototype.Decimal128)</span>
+<a name="l940"><span class="ln">940  </span></a> <span class="s6">* - [ObjectId](https://mongoosejs.com/docs/schematypes.html#objectids)</span>
+<a name="l941"><span class="ln">941  </span></a> <span class="s6">* - [Map](https://mongoosejs.com/docs/schematypes.html#maps)</span>
+<a name="l942"><span class="ln">942  </span></a> <span class="s6">* - [Subdocument](https://mongoosejs.com/docs/schematypes.html#schemas)</span>
+<a name="l943"><span class="ln">943  </span></a> <span class="s6">*</span>
+<a name="l944"><span class="ln">944  </span></a> <span class="s6">* Using this exposed access to the `ObjectId` type, we can construct ids on demand.</span>
+<a name="l945"><span class="ln">945  </span></a> <span class="s6">*</span>
+<a name="l946"><span class="ln">946  </span></a> <span class="s6">*     const ObjectId = mongoose.Types.ObjectId;</span>
+<a name="l947"><span class="ln">947  </span></a> <span class="s6">*     const id1 = new ObjectId;</span>
+<a name="l948"><span class="ln">948  </span></a> <span class="s6">*</span>
+<a name="l949"><span class="ln">949  </span></a> <span class="s6">* </span><span class="s7">@property </span><span class="s6">Types</span>
+<a name="l950"><span class="ln">950  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l951"><span class="ln">951  </span></a> <span class="s6">*/</span>
+<a name="l952"><span class="ln">952  </span></a>
+<a name="l953"><span class="ln">953  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">Types </span><span class="s1">= </span><span class="s2">Types</span><span class="s1">;</span>
+<a name="l954"><span class="ln">954  </span></a>
+<a name="l955"><span class="ln">955  </span></a><span class="s6">/**</span>
+<a name="l956"><span class="ln">956  </span></a> <span class="s6">* The Mongoose [Query](https://mongoosejs.com/docs/api/query.html#Query()) constructor.</span>
+<a name="l957"><span class="ln">957  </span></a> <span class="s6">*</span>
+<a name="l958"><span class="ln">958  </span></a> <span class="s6">* </span><span class="s7">@method </span><span class="s6">Query</span>
+<a name="l959"><span class="ln">959  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l960"><span class="ln">960  </span></a> <span class="s6">*/</span>
+<a name="l961"><span class="ln">961  </span></a>
+<a name="l962"><span class="ln">962  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">Query </span><span class="s1">= </span><span class="s2">Query</span><span class="s1">;</span>
+<a name="l963"><span class="ln">963  </span></a>
+<a name="l964"><span class="ln">964  </span></a><span class="s6">/**</span>
+<a name="l965"><span class="ln">965  </span></a> <span class="s6">* The Mongoose [Model](https://mongoosejs.com/docs/api/model.html#Model()) constructor.</span>
+<a name="l966"><span class="ln">966  </span></a> <span class="s6">*</span>
+<a name="l967"><span class="ln">967  </span></a> <span class="s6">* </span><span class="s7">@method </span><span class="s6">Model</span>
+<a name="l968"><span class="ln">968  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l969"><span class="ln">969  </span></a> <span class="s6">*/</span>
+<a name="l970"><span class="ln">970  </span></a>
+<a name="l971"><span class="ln">971  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">Model </span><span class="s1">= </span><span class="s2">Model</span><span class="s1">;</span>
+<a name="l972"><span class="ln">972  </span></a>
+<a name="l973"><span class="ln">973  </span></a><span class="s6">/**</span>
+<a name="l974"><span class="ln">974  </span></a> <span class="s6">* The Mongoose [Document](https://mongoosejs.com/docs/api/document.html#Document()) constructor.</span>
+<a name="l975"><span class="ln">975  </span></a> <span class="s6">*</span>
+<a name="l976"><span class="ln">976  </span></a> <span class="s6">* </span><span class="s7">@method </span><span class="s6">Document</span>
+<a name="l977"><span class="ln">977  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l978"><span class="ln">978  </span></a> <span class="s6">*/</span>
+<a name="l979"><span class="ln">979  </span></a>
+<a name="l980"><span class="ln">980  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">Document </span><span class="s1">= </span><span class="s2">Document</span><span class="s1">;</span>
+<a name="l981"><span class="ln">981  </span></a>
+<a name="l982"><span class="ln">982  </span></a><span class="s6">/**</span>
+<a name="l983"><span class="ln">983  </span></a> <span class="s6">* The Mongoose DocumentProvider constructor. Mongoose users should not have to</span>
+<a name="l984"><span class="ln">984  </span></a> <span class="s6">* use this directly</span>
+<a name="l985"><span class="ln">985  </span></a> <span class="s6">*</span>
+<a name="l986"><span class="ln">986  </span></a> <span class="s6">* </span><span class="s7">@method </span><span class="s6">DocumentProvider</span>
+<a name="l987"><span class="ln">987  </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l988"><span class="ln">988  </span></a> <span class="s6">*/</span>
+<a name="l989"><span class="ln">989  </span></a>
+<a name="l990"><span class="ln">990  </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">DocumentProvider </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'./documentProvider'</span><span class="s1">);</span>
+<a name="l991"><span class="ln">991  </span></a>
+<a name="l992"><span class="ln">992  </span></a><span class="s6">/**</span>
+<a name="l993"><span class="ln">993  </span></a> <span class="s6">* The Mongoose ObjectId [SchemaType](https://mongoosejs.com/docs/schematypes.html). Used for</span>
+<a name="l994"><span class="ln">994  </span></a> <span class="s6">* declaring paths in your schema that should be</span>
+<a name="l995"><span class="ln">995  </span></a> <span class="s6">* [MongoDB ObjectIds](https://www.mongodb.com/docs/manual/reference/method/ObjectId/).</span>
+<a name="l996"><span class="ln">996  </span></a> <span class="s6">* Do not use this to create a new ObjectId instance, use `mongoose.Types.ObjectId`</span>
+<a name="l997"><span class="ln">997  </span></a> <span class="s6">* instead.</span>
+<a name="l998"><span class="ln">998  </span></a> <span class="s6">*</span>
+<a name="l999"><span class="ln">999  </span></a> <span class="s6">* #### Example:</span>
+<a name="l1000"><span class="ln">1000 </span></a> <span class="s6">*</span>
+<a name="l1001"><span class="ln">1001 </span></a> <span class="s6">*     const childSchema = new Schema({ parentId: mongoose.ObjectId });</span>
+<a name="l1002"><span class="ln">1002 </span></a> <span class="s6">*</span>
+<a name="l1003"><span class="ln">1003 </span></a> <span class="s6">* </span><span class="s7">@property </span><span class="s6">ObjectId</span>
+<a name="l1004"><span class="ln">1004 </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l1005"><span class="ln">1005 </span></a> <span class="s6">*/</span>
+<a name="l1006"><span class="ln">1006 </span></a>
+<a name="l1007"><span class="ln">1007 </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">ObjectId </span><span class="s1">= </span><span class="s2">SchemaTypes</span><span class="s1">.</span><span class="s2">ObjectId</span><span class="s1">;</span>
+<a name="l1008"><span class="ln">1008 </span></a>
+<a name="l1009"><span class="ln">1009 </span></a><span class="s6">/**</span>
+<a name="l1010"><span class="ln">1010 </span></a> <span class="s6">* Returns true if Mongoose can cast the given value to an ObjectId, or</span>
+<a name="l1011"><span class="ln">1011 </span></a> <span class="s6">* false otherwise.</span>
+<a name="l1012"><span class="ln">1012 </span></a> <span class="s6">*</span>
+<a name="l1013"><span class="ln">1013 </span></a> <span class="s6">* #### Example:</span>
+<a name="l1014"><span class="ln">1014 </span></a> <span class="s6">*</span>
+<a name="l1015"><span class="ln">1015 </span></a> <span class="s6">*     mongoose.isValidObjectId(new mongoose.Types.ObjectId()); // true</span>
+<a name="l1016"><span class="ln">1016 </span></a> <span class="s6">*     mongoose.isValidObjectId('0123456789ab'); // true</span>
+<a name="l1017"><span class="ln">1017 </span></a> <span class="s6">*     mongoose.isValidObjectId(6); // true</span>
+<a name="l1018"><span class="ln">1018 </span></a> <span class="s6">*     mongoose.isValidObjectId(new User({ name: 'test' })); // true</span>
+<a name="l1019"><span class="ln">1019 </span></a> <span class="s6">*</span>
+<a name="l1020"><span class="ln">1020 </span></a> <span class="s6">*     mongoose.isValidObjectId({ test: 42 }); // false</span>
+<a name="l1021"><span class="ln">1021 </span></a> <span class="s6">*</span>
+<a name="l1022"><span class="ln">1022 </span></a> <span class="s6">* </span><span class="s7">@method </span><span class="s6">isValidObjectId</span>
+<a name="l1023"><span class="ln">1023 </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Any} v</span>
+<a name="l1024"><span class="ln">1024 </span></a> <span class="s6">* </span><span class="s7">@returns </span><span class="s6">{boolean} true if `v` is something Mongoose can coerce to an ObjectId</span>
+<a name="l1025"><span class="ln">1025 </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l1026"><span class="ln">1026 </span></a> <span class="s6">*/</span>
+<a name="l1027"><span class="ln">1027 </span></a>
+<a name="l1028"><span class="ln">1028 </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">isValidObjectId </span><span class="s1">= </span><span class="s4">function</span><span class="s1">(</span><span class="s2">v</span><span class="s1">) {</span>
+<a name="l1029"><span class="ln">1029 </span></a>  <span class="s4">const </span><span class="s2">_mongoose </span><span class="s1">= </span><span class="s4">this instanceof </span><span class="s2">Mongoose </span><span class="s1">? </span><span class="s4">this </span><span class="s1">: </span><span class="s2">mongoose</span><span class="s1">;</span>
+<a name="l1030"><span class="ln">1030 </span></a>  <span class="s4">return </span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">Types</span><span class="s1">.</span><span class="s2">ObjectId</span><span class="s1">.</span><span class="s2">isValid</span><span class="s1">(</span><span class="s2">v</span><span class="s1">);</span>
+<a name="l1031"><span class="ln">1031 </span></a><span class="s1">};</span>
+<a name="l1032"><span class="ln">1032 </span></a>
+<a name="l1033"><span class="ln">1033 </span></a><span class="s6">/**</span>
+<a name="l1034"><span class="ln">1034 </span></a> <span class="s6">* Returns true if the given value is a Mongoose ObjectId (using `instanceof`) or if the</span>
+<a name="l1035"><span class="ln">1035 </span></a> <span class="s6">* given value is a 24 character hex string, which is the most commonly used string representation</span>
+<a name="l1036"><span class="ln">1036 </span></a> <span class="s6">* of an ObjectId.</span>
+<a name="l1037"><span class="ln">1037 </span></a> <span class="s6">*</span>
+<a name="l1038"><span class="ln">1038 </span></a> <span class="s6">* This function is similar to `isValidObjectId()`, but considerably more strict, because</span>
+<a name="l1039"><span class="ln">1039 </span></a> <span class="s6">* `isValidObjectId()` will return `true` for _any_ value that Mongoose can convert to an</span>
+<a name="l1040"><span class="ln">1040 </span></a> <span class="s6">* ObjectId. That includes Mongoose documents, any string of length 12, and any number.</span>
+<a name="l1041"><span class="ln">1041 </span></a> <span class="s6">* `isObjectIdOrHexString()` returns true only for `ObjectId` instances or 24 character hex</span>
+<a name="l1042"><span class="ln">1042 </span></a> <span class="s6">* strings, and will return false for numbers, documents, and strings of length 12.</span>
+<a name="l1043"><span class="ln">1043 </span></a> <span class="s6">*</span>
+<a name="l1044"><span class="ln">1044 </span></a> <span class="s6">* #### Example:</span>
+<a name="l1045"><span class="ln">1045 </span></a> <span class="s6">*</span>
+<a name="l1046"><span class="ln">1046 </span></a> <span class="s6">*     mongoose.isObjectIdOrHexString(new mongoose.Types.ObjectId()); // true</span>
+<a name="l1047"><span class="ln">1047 </span></a> <span class="s6">*     mongoose.isObjectIdOrHexString('62261a65d66c6be0a63c051f'); // true</span>
+<a name="l1048"><span class="ln">1048 </span></a> <span class="s6">*</span>
+<a name="l1049"><span class="ln">1049 </span></a> <span class="s6">*     mongoose.isObjectIdOrHexString('0123456789ab'); // false</span>
+<a name="l1050"><span class="ln">1050 </span></a> <span class="s6">*     mongoose.isObjectIdOrHexString(6); // false</span>
+<a name="l1051"><span class="ln">1051 </span></a> <span class="s6">*     mongoose.isObjectIdOrHexString(new User({ name: 'test' })); // false</span>
+<a name="l1052"><span class="ln">1052 </span></a> <span class="s6">*     mongoose.isObjectIdOrHexString({ test: 42 }); // false</span>
+<a name="l1053"><span class="ln">1053 </span></a> <span class="s6">*</span>
+<a name="l1054"><span class="ln">1054 </span></a> <span class="s6">* </span><span class="s7">@method </span><span class="s6">isObjectIdOrHexString</span>
+<a name="l1055"><span class="ln">1055 </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Any} v</span>
+<a name="l1056"><span class="ln">1056 </span></a> <span class="s6">* </span><span class="s7">@returns </span><span class="s6">{boolean} true if `v` is an ObjectId instance _or_ a 24 char hex string</span>
+<a name="l1057"><span class="ln">1057 </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l1058"><span class="ln">1058 </span></a> <span class="s6">*/</span>
+<a name="l1059"><span class="ln">1059 </span></a>
+<a name="l1060"><span class="ln">1060 </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">isObjectIdOrHexString </span><span class="s1">= </span><span class="s4">function</span><span class="s1">(</span><span class="s2">v</span><span class="s1">) {</span>
+<a name="l1061"><span class="ln">1061 </span></a>  <span class="s4">return </span><span class="s2">isBsonType</span><span class="s1">(</span><span class="s2">v</span><span class="s1">, </span><span class="s0">'ObjectId'</span><span class="s1">) || (</span><span class="s4">typeof </span><span class="s2">v </span><span class="s1">=== </span><span class="s0">'string' </span><span class="s1">&amp;&amp; </span><span class="s2">objectIdHexRegexp</span><span class="s1">.</span><span class="s2">test</span><span class="s1">(</span><span class="s2">v</span><span class="s1">));</span>
+<a name="l1062"><span class="ln">1062 </span></a><span class="s1">};</span>
+<a name="l1063"><span class="ln">1063 </span></a>
+<a name="l1064"><span class="ln">1064 </span></a><span class="s6">/**</span>
+<a name="l1065"><span class="ln">1065 </span></a> <span class="s6">*</span>
+<a name="l1066"><span class="ln">1066 </span></a> <span class="s6">* Syncs all the indexes for the models registered with this connection.</span>
+<a name="l1067"><span class="ln">1067 </span></a> <span class="s6">*</span>
+<a name="l1068"><span class="ln">1068 </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Object} options</span>
+<a name="l1069"><span class="ln">1069 </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Boolean} options.continueOnError `false` by default. If set to `true`, mongoose will not throw an error if one model syncing failed, and will return an object where the keys are the names of the models, and the values are the results/errors for each model.</span>
+<a name="l1070"><span class="ln">1070 </span></a> <span class="s6">* </span><span class="s7">@return </span><span class="s6">{Promise} Returns a Promise, when the Promise resolves the value is a list of the dropped indexes.</span>
+<a name="l1071"><span class="ln">1071 </span></a> <span class="s6">*/</span>
+<a name="l1072"><span class="ln">1072 </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">syncIndexes </span><span class="s1">= </span><span class="s4">function</span><span class="s1">(</span><span class="s2">options</span><span class="s1">) {</span>
+<a name="l1073"><span class="ln">1073 </span></a>  <span class="s4">const </span><span class="s2">_mongoose </span><span class="s1">= </span><span class="s4">this instanceof </span><span class="s2">Mongoose </span><span class="s1">? </span><span class="s4">this </span><span class="s1">: </span><span class="s2">mongoose</span><span class="s1">;</span>
+<a name="l1074"><span class="ln">1074 </span></a>  <span class="s4">return </span><span class="s2">_mongoose</span><span class="s1">.</span><span class="s2">connection</span><span class="s1">.</span><span class="s2">syncIndexes</span><span class="s1">(</span><span class="s2">options</span><span class="s1">);</span>
+<a name="l1075"><span class="ln">1075 </span></a><span class="s1">};</span>
+<a name="l1076"><span class="ln">1076 </span></a>
+<a name="l1077"><span class="ln">1077 </span></a><span class="s6">/**</span>
+<a name="l1078"><span class="ln">1078 </span></a> <span class="s6">* The Mongoose Decimal128 [SchemaType](https://mongoosejs.com/docs/schematypes.html). Used for</span>
+<a name="l1079"><span class="ln">1079 </span></a> <span class="s6">* declaring paths in your schema that should be</span>
+<a name="l1080"><span class="ln">1080 </span></a> <span class="s6">* [128-bit decimal floating points](https://thecodebarbarian.com/a-nodejs-perspective-on-mongodb-34-decimal.html).</span>
+<a name="l1081"><span class="ln">1081 </span></a> <span class="s6">* Do not use this to create a new Decimal128 instance, use `mongoose.Types.Decimal128`</span>
+<a name="l1082"><span class="ln">1082 </span></a> <span class="s6">* instead.</span>
+<a name="l1083"><span class="ln">1083 </span></a> <span class="s6">*</span>
+<a name="l1084"><span class="ln">1084 </span></a> <span class="s6">* #### Example:</span>
+<a name="l1085"><span class="ln">1085 </span></a> <span class="s6">*</span>
+<a name="l1086"><span class="ln">1086 </span></a> <span class="s6">*     const vehicleSchema = new Schema({ fuelLevel: mongoose.Decimal128 });</span>
+<a name="l1087"><span class="ln">1087 </span></a> <span class="s6">*</span>
+<a name="l1088"><span class="ln">1088 </span></a> <span class="s6">* </span><span class="s7">@property </span><span class="s6">Decimal128</span>
+<a name="l1089"><span class="ln">1089 </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l1090"><span class="ln">1090 </span></a> <span class="s6">*/</span>
+<a name="l1091"><span class="ln">1091 </span></a>
+<a name="l1092"><span class="ln">1092 </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">Decimal128 </span><span class="s1">= </span><span class="s2">SchemaTypes</span><span class="s1">.</span><span class="s2">Decimal128</span><span class="s1">;</span>
+<a name="l1093"><span class="ln">1093 </span></a>
+<a name="l1094"><span class="ln">1094 </span></a><span class="s6">/**</span>
+<a name="l1095"><span class="ln">1095 </span></a> <span class="s6">* The Mongoose Mixed [SchemaType](https://mongoosejs.com/docs/schematypes.html). Used for</span>
+<a name="l1096"><span class="ln">1096 </span></a> <span class="s6">* declaring paths in your schema that Mongoose's change tracking, casting,</span>
+<a name="l1097"><span class="ln">1097 </span></a> <span class="s6">* and validation should ignore.</span>
+<a name="l1098"><span class="ln">1098 </span></a> <span class="s6">*</span>
+<a name="l1099"><span class="ln">1099 </span></a> <span class="s6">* #### Example:</span>
+<a name="l1100"><span class="ln">1100 </span></a> <span class="s6">*</span>
+<a name="l1101"><span class="ln">1101 </span></a> <span class="s6">*     const schema = new Schema({ arbitrary: mongoose.Mixed });</span>
+<a name="l1102"><span class="ln">1102 </span></a> <span class="s6">*</span>
+<a name="l1103"><span class="ln">1103 </span></a> <span class="s6">* </span><span class="s7">@property </span><span class="s6">Mixed</span>
+<a name="l1104"><span class="ln">1104 </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l1105"><span class="ln">1105 </span></a> <span class="s6">*/</span>
+<a name="l1106"><span class="ln">1106 </span></a>
+<a name="l1107"><span class="ln">1107 </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">Mixed </span><span class="s1">= </span><span class="s2">SchemaTypes</span><span class="s1">.</span><span class="s2">Mixed</span><span class="s1">;</span>
+<a name="l1108"><span class="ln">1108 </span></a>
+<a name="l1109"><span class="ln">1109 </span></a><span class="s6">/**</span>
+<a name="l1110"><span class="ln">1110 </span></a> <span class="s6">* The Mongoose Date [SchemaType](https://mongoosejs.com/docs/schematypes.html).</span>
+<a name="l1111"><span class="ln">1111 </span></a> <span class="s6">*</span>
+<a name="l1112"><span class="ln">1112 </span></a> <span class="s6">* #### Example:</span>
+<a name="l1113"><span class="ln">1113 </span></a> <span class="s6">*</span>
+<a name="l1114"><span class="ln">1114 </span></a> <span class="s6">*     const schema = new Schema({ test: Date });</span>
+<a name="l1115"><span class="ln">1115 </span></a> <span class="s6">*     schema.path('test') instanceof mongoose.Date; // true</span>
+<a name="l1116"><span class="ln">1116 </span></a> <span class="s6">*</span>
+<a name="l1117"><span class="ln">1117 </span></a> <span class="s6">* </span><span class="s7">@property </span><span class="s6">Date</span>
+<a name="l1118"><span class="ln">1118 </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l1119"><span class="ln">1119 </span></a> <span class="s6">*/</span>
+<a name="l1120"><span class="ln">1120 </span></a>
+<a name="l1121"><span class="ln">1121 </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">Date </span><span class="s1">= </span><span class="s2">SchemaTypes</span><span class="s1">.</span><span class="s2">Date</span><span class="s1">;</span>
+<a name="l1122"><span class="ln">1122 </span></a>
+<a name="l1123"><span class="ln">1123 </span></a><span class="s6">/**</span>
+<a name="l1124"><span class="ln">1124 </span></a> <span class="s6">* The Mongoose Number [SchemaType](https://mongoosejs.com/docs/schematypes.html). Used for</span>
+<a name="l1125"><span class="ln">1125 </span></a> <span class="s6">* declaring paths in your schema that Mongoose should cast to numbers.</span>
+<a name="l1126"><span class="ln">1126 </span></a> <span class="s6">*</span>
+<a name="l1127"><span class="ln">1127 </span></a> <span class="s6">* #### Example:</span>
+<a name="l1128"><span class="ln">1128 </span></a> <span class="s6">*</span>
+<a name="l1129"><span class="ln">1129 </span></a> <span class="s6">*     const schema = new Schema({ num: mongoose.Number });</span>
+<a name="l1130"><span class="ln">1130 </span></a> <span class="s6">*     // Equivalent to:</span>
+<a name="l1131"><span class="ln">1131 </span></a> <span class="s6">*     const schema = new Schema({ num: 'number' });</span>
+<a name="l1132"><span class="ln">1132 </span></a> <span class="s6">*</span>
+<a name="l1133"><span class="ln">1133 </span></a> <span class="s6">* </span><span class="s7">@property </span><span class="s6">Number</span>
+<a name="l1134"><span class="ln">1134 </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l1135"><span class="ln">1135 </span></a> <span class="s6">*/</span>
+<a name="l1136"><span class="ln">1136 </span></a>
+<a name="l1137"><span class="ln">1137 </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">Number </span><span class="s1">= </span><span class="s2">SchemaTypes</span><span class="s1">.</span><span class="s2">Number</span><span class="s1">;</span>
+<a name="l1138"><span class="ln">1138 </span></a>
+<a name="l1139"><span class="ln">1139 </span></a><span class="s6">/**</span>
+<a name="l1140"><span class="ln">1140 </span></a> <span class="s6">* The [MongooseError](https://mongoosejs.com/docs/api/error.html#Error()) constructor.</span>
+<a name="l1141"><span class="ln">1141 </span></a> <span class="s6">*</span>
+<a name="l1142"><span class="ln">1142 </span></a> <span class="s6">* </span><span class="s7">@method </span><span class="s6">Error</span>
+<a name="l1143"><span class="ln">1143 </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l1144"><span class="ln">1144 </span></a> <span class="s6">*/</span>
+<a name="l1145"><span class="ln">1145 </span></a>
+<a name="l1146"><span class="ln">1146 </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">Error </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'./error/index'</span><span class="s1">);</span>
+<a name="l1147"><span class="ln">1147 </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">MongooseError </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'./error/mongooseError'</span><span class="s1">);</span>
+<a name="l1148"><span class="ln">1148 </span></a>
+<a name="l1149"><span class="ln">1149 </span></a><span class="s6">/**</span>
+<a name="l1150"><span class="ln">1150 </span></a> <span class="s6">* Mongoose uses this function to get the current time when setting</span>
+<a name="l1151"><span class="ln">1151 </span></a> <span class="s6">* [timestamps](https://mongoosejs.com/docs/guide.html#timestamps). You may stub out this function</span>
+<a name="l1152"><span class="ln">1152 </span></a> <span class="s6">* using a tool like [Sinon](https://www.npmjs.com/package/sinon) for testing.</span>
+<a name="l1153"><span class="ln">1153 </span></a> <span class="s6">*</span>
+<a name="l1154"><span class="ln">1154 </span></a> <span class="s6">* </span><span class="s7">@method </span><span class="s6">now</span>
+<a name="l1155"><span class="ln">1155 </span></a> <span class="s6">* </span><span class="s7">@returns </span><span class="s6">Date the current time</span>
+<a name="l1156"><span class="ln">1156 </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l1157"><span class="ln">1157 </span></a> <span class="s6">*/</span>
+<a name="l1158"><span class="ln">1158 </span></a>
+<a name="l1159"><span class="ln">1159 </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">now </span><span class="s1">= </span><span class="s4">function </span><span class="s2">now</span><span class="s1">() { </span><span class="s4">return new </span><span class="s2">Date</span><span class="s1">(); };</span>
+<a name="l1160"><span class="ln">1160 </span></a>
+<a name="l1161"><span class="ln">1161 </span></a><span class="s6">/**</span>
+<a name="l1162"><span class="ln">1162 </span></a> <span class="s6">* The Mongoose CastError constructor</span>
+<a name="l1163"><span class="ln">1163 </span></a> <span class="s6">*</span>
+<a name="l1164"><span class="ln">1164 </span></a> <span class="s6">* </span><span class="s7">@method </span><span class="s6">CastError</span>
+<a name="l1165"><span class="ln">1165 </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{String} type The name of the type</span>
+<a name="l1166"><span class="ln">1166 </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Any} value The value that failed to cast</span>
+<a name="l1167"><span class="ln">1167 </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{String} path The path `a.b.c` in the doc where this cast error occurred</span>
+<a name="l1168"><span class="ln">1168 </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Error} [reason] The original error that was thrown</span>
+<a name="l1169"><span class="ln">1169 </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l1170"><span class="ln">1170 </span></a> <span class="s6">*/</span>
+<a name="l1171"><span class="ln">1171 </span></a>
+<a name="l1172"><span class="ln">1172 </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">CastError </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'./error/cast'</span><span class="s1">);</span>
+<a name="l1173"><span class="ln">1173 </span></a>
+<a name="l1174"><span class="ln">1174 </span></a><span class="s6">/**</span>
+<a name="l1175"><span class="ln">1175 </span></a> <span class="s6">* The constructor used for schematype options</span>
+<a name="l1176"><span class="ln">1176 </span></a> <span class="s6">*</span>
+<a name="l1177"><span class="ln">1177 </span></a> <span class="s6">* </span><span class="s7">@method </span><span class="s6">SchemaTypeOptions</span>
+<a name="l1178"><span class="ln">1178 </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l1179"><span class="ln">1179 </span></a> <span class="s6">*/</span>
+<a name="l1180"><span class="ln">1180 </span></a>
+<a name="l1181"><span class="ln">1181 </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">SchemaTypeOptions </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'./options/schemaTypeOptions'</span><span class="s1">);</span>
+<a name="l1182"><span class="ln">1182 </span></a>
+<a name="l1183"><span class="ln">1183 </span></a><span class="s6">/**</span>
+<a name="l1184"><span class="ln">1184 </span></a> <span class="s6">* The [mquery](https://github.com/aheckmann/mquery) query builder Mongoose uses.</span>
+<a name="l1185"><span class="ln">1185 </span></a> <span class="s6">*</span>
+<a name="l1186"><span class="ln">1186 </span></a> <span class="s6">* </span><span class="s7">@property </span><span class="s6">mquery</span>
+<a name="l1187"><span class="ln">1187 </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l1188"><span class="ln">1188 </span></a> <span class="s6">*/</span>
+<a name="l1189"><span class="ln">1189 </span></a>
+<a name="l1190"><span class="ln">1190 </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">mquery </span><span class="s1">= </span><span class="s2">require</span><span class="s1">(</span><span class="s0">'mquery'</span><span class="s1">);</span>
+<a name="l1191"><span class="ln">1191 </span></a>
+<a name="l1192"><span class="ln">1192 </span></a><span class="s6">/**</span>
+<a name="l1193"><span class="ln">1193 </span></a> <span class="s6">* Sanitizes query filters against [query selector injection attacks](https://thecodebarbarian.com/2014/09/04/defending-against-query-selector-injection-attacks.html)</span>
+<a name="l1194"><span class="ln">1194 </span></a> <span class="s6">* by wrapping any nested objects that have a property whose name starts with `$` in a `$eq`.</span>
+<a name="l1195"><span class="ln">1195 </span></a> <span class="s6">*</span>
+<a name="l1196"><span class="ln">1196 </span></a> <span class="s6">* ```javascript</span>
+<a name="l1197"><span class="ln">1197 </span></a> <span class="s6">* const obj = { username: 'val', pwd: { $ne: null } };</span>
+<a name="l1198"><span class="ln">1198 </span></a> <span class="s6">* sanitizeFilter(obj);</span>
+<a name="l1199"><span class="ln">1199 </span></a> <span class="s6">* obj; // { username: 'val', pwd: { $eq: { $ne: null } } });</span>
+<a name="l1200"><span class="ln">1200 </span></a> <span class="s6">* ```</span>
+<a name="l1201"><span class="ln">1201 </span></a> <span class="s6">*</span>
+<a name="l1202"><span class="ln">1202 </span></a> <span class="s6">* </span><span class="s7">@method </span><span class="s6">sanitizeFilter</span>
+<a name="l1203"><span class="ln">1203 </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Object} filter</span>
+<a name="l1204"><span class="ln">1204 </span></a> <span class="s6">* </span><span class="s7">@returns </span><span class="s6">Object the sanitized object</span>
+<a name="l1205"><span class="ln">1205 </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l1206"><span class="ln">1206 </span></a> <span class="s6">*/</span>
+<a name="l1207"><span class="ln">1207 </span></a>
+<a name="l1208"><span class="ln">1208 </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">sanitizeFilter </span><span class="s1">= </span><span class="s2">sanitizeFilter</span><span class="s1">;</span>
+<a name="l1209"><span class="ln">1209 </span></a>
+<a name="l1210"><span class="ln">1210 </span></a><span class="s6">/**</span>
+<a name="l1211"><span class="ln">1211 </span></a> <span class="s6">* Tells `sanitizeFilter()` to skip the given object when filtering out potential [query selector injection attacks](https://thecodebarbarian.com/2014/09/04/defending-against-query-selector-injection-attacks.html).</span>
+<a name="l1212"><span class="ln">1212 </span></a> <span class="s6">* Use this method when you have a known query selector that you want to use.</span>
+<a name="l1213"><span class="ln">1213 </span></a> <span class="s6">*</span>
+<a name="l1214"><span class="ln">1214 </span></a> <span class="s6">* ```javascript</span>
+<a name="l1215"><span class="ln">1215 </span></a> <span class="s6">* const obj = { username: 'val', pwd: trusted({ $type: 'string', $eq: 'my secret' }) };</span>
+<a name="l1216"><span class="ln">1216 </span></a> <span class="s6">* sanitizeFilter(obj);</span>
+<a name="l1217"><span class="ln">1217 </span></a> <span class="s6">*</span>
+<a name="l1218"><span class="ln">1218 </span></a> <span class="s6">* // Note that `sanitizeFilter()` did not add `$eq` around `$type`.</span>
+<a name="l1219"><span class="ln">1219 </span></a> <span class="s6">* obj; // { username: 'val', pwd: { $type: 'string', $eq: 'my secret' } });</span>
+<a name="l1220"><span class="ln">1220 </span></a> <span class="s6">* ```</span>
+<a name="l1221"><span class="ln">1221 </span></a> <span class="s6">*</span>
+<a name="l1222"><span class="ln">1222 </span></a> <span class="s6">* </span><span class="s7">@method </span><span class="s6">trusted</span>
+<a name="l1223"><span class="ln">1223 </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{Object} obj</span>
+<a name="l1224"><span class="ln">1224 </span></a> <span class="s6">* </span><span class="s7">@returns </span><span class="s6">Object the passed in object</span>
+<a name="l1225"><span class="ln">1225 </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l1226"><span class="ln">1226 </span></a> <span class="s6">*/</span>
+<a name="l1227"><span class="ln">1227 </span></a>
+<a name="l1228"><span class="ln">1228 </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">trusted </span><span class="s1">= </span><span class="s2">trusted</span><span class="s1">;</span>
+<a name="l1229"><span class="ln">1229 </span></a>
+<a name="l1230"><span class="ln">1230 </span></a><span class="s6">/**</span>
+<a name="l1231"><span class="ln">1231 </span></a> <span class="s6">* Use this function in `pre()` middleware to skip calling the wrapped function.</span>
+<a name="l1232"><span class="ln">1232 </span></a> <span class="s6">*</span>
+<a name="l1233"><span class="ln">1233 </span></a> <span class="s6">* #### Example:</span>
+<a name="l1234"><span class="ln">1234 </span></a> <span class="s6">*</span>
+<a name="l1235"><span class="ln">1235 </span></a> <span class="s6">*     schema.pre('save', function() {</span>
+<a name="l1236"><span class="ln">1236 </span></a> <span class="s6">*       // Will skip executing `save()`, but will execute post hooks as if</span>
+<a name="l1237"><span class="ln">1237 </span></a> <span class="s6">*       // `save()` had executed with the result `{ matchedCount: 0 }`</span>
+<a name="l1238"><span class="ln">1238 </span></a> <span class="s6">*       return mongoose.skipMiddlewareFunction({ matchedCount: 0 });</span>
+<a name="l1239"><span class="ln">1239 </span></a> <span class="s6">*     });</span>
+<a name="l1240"><span class="ln">1240 </span></a> <span class="s6">*</span>
+<a name="l1241"><span class="ln">1241 </span></a> <span class="s6">* </span><span class="s7">@method </span><span class="s6">skipMiddlewareFunction</span>
+<a name="l1242"><span class="ln">1242 </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{any} result</span>
+<a name="l1243"><span class="ln">1243 </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l1244"><span class="ln">1244 </span></a> <span class="s6">*/</span>
+<a name="l1245"><span class="ln">1245 </span></a>
+<a name="l1246"><span class="ln">1246 </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">skipMiddlewareFunction </span><span class="s1">= </span><span class="s2">Kareem</span><span class="s1">.</span><span class="s2">skipWrappedFunction</span><span class="s1">;</span>
+<a name="l1247"><span class="ln">1247 </span></a>
+<a name="l1248"><span class="ln">1248 </span></a><span class="s6">/**</span>
+<a name="l1249"><span class="ln">1249 </span></a> <span class="s6">* Use this function in `post()` middleware to replace the result</span>
+<a name="l1250"><span class="ln">1250 </span></a> <span class="s6">*</span>
+<a name="l1251"><span class="ln">1251 </span></a> <span class="s6">* #### Example:</span>
+<a name="l1252"><span class="ln">1252 </span></a> <span class="s6">*</span>
+<a name="l1253"><span class="ln">1253 </span></a> <span class="s6">*     schema.post('find', function(res) {</span>
+<a name="l1254"><span class="ln">1254 </span></a> <span class="s6">*       // Normally you have to modify `res` in place. But with</span>
+<a name="l1255"><span class="ln">1255 </span></a> <span class="s6">*       // `overwriteMiddlewarResult()`, you can make `find()` return a</span>
+<a name="l1256"><span class="ln">1256 </span></a> <span class="s6">*       // completely different value.</span>
+<a name="l1257"><span class="ln">1257 </span></a> <span class="s6">*       return mongoose.overwriteMiddlewareResult(res.filter(doc =&gt; !doc.isDeleted));</span>
+<a name="l1258"><span class="ln">1258 </span></a> <span class="s6">*     });</span>
+<a name="l1259"><span class="ln">1259 </span></a> <span class="s6">*</span>
+<a name="l1260"><span class="ln">1260 </span></a> <span class="s6">* </span><span class="s7">@method </span><span class="s6">overwriteMiddlewareResult</span>
+<a name="l1261"><span class="ln">1261 </span></a> <span class="s6">* </span><span class="s7">@param </span><span class="s6">{any} result</span>
+<a name="l1262"><span class="ln">1262 </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">public</span>
+<a name="l1263"><span class="ln">1263 </span></a> <span class="s6">*/</span>
+<a name="l1264"><span class="ln">1264 </span></a>
+<a name="l1265"><span class="ln">1265 </span></a><span class="s2">Mongoose</span><span class="s1">.</span><span class="s2">prototype</span><span class="s1">.</span><span class="s2">overwriteMiddlewareResult </span><span class="s1">= </span><span class="s2">Kareem</span><span class="s1">.</span><span class="s2">overwriteResult</span><span class="s1">;</span>
+<a name="l1266"><span class="ln">1266 </span></a>
+<a name="l1267"><span class="ln">1267 </span></a><span class="s6">/**</span>
+<a name="l1268"><span class="ln">1268 </span></a> <span class="s6">* The exports object is an instance of Mongoose.</span>
+<a name="l1269"><span class="ln">1269 </span></a> <span class="s6">*</span>
+<a name="l1270"><span class="ln">1270 </span></a> <span class="s6">* </span><span class="s7">@api </span><span class="s6">private</span>
+<a name="l1271"><span class="ln">1271 </span></a> <span class="s6">*/</span>
+<a name="l1272"><span class="ln">1272 </span></a>
+<a name="l1273"><span class="ln">1273 </span></a><span class="s4">const </span><span class="s2">mongoose </span><span class="s1">= </span><span class="s2">module</span><span class="s1">.</span><span class="s2">exports </span><span class="s1">= </span><span class="s2">exports </span><span class="s1">= </span><span class="s4">new </span><span class="s2">Mongoose</span><span class="s1">({</span>
+<a name="l1274"><span class="ln">1274 </span></a>  <span class="s1">[</span><span class="s2">defaultMongooseSymbol</span><span class="s1">]: </span><span class="s4">true</span>
+<a name="l1275"><span class="ln">1275 </span></a><span class="s1">});</span>
+<a name="l1276"><span class="ln">1276 </span></a></pre>
+</body>
+</html>

@@ -1,0 +1,482 @@
+/* Pour le conteneur authentification */
+.auth-container {
+  background-position: center; /* Centre l'image horizontalement et verticalement */
+  text-align: center;
+  padding: 30px;
+  box-shadow: 0;
+}
+/* Pour l'image */
+.auth-image {
+  background-image: url("Identification/Image1.png"); /* Chemin vers l'image */
+  background-size: 100%; /* Redimensionne l'image pour couvrir le conteneur */
+  width: 200px; /* Largeur de l'image */
+  height: 150px; /* Hauteur de l'image */
+  margin-bottom: 20px; /* Espacement en bas */
+  box-shadow: 5px 5px 10px rgb(39, 106, 16);
+  border: 2px solid #4a884b;
+
+
+}
+
+/* Pour l'application */
+.App {
+  text-align: center;
+  background-color: #f7f7f7; /* Couleur de fond */
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+/* Placeholder pour les champs "Adresse e-mail" et "Mot de passe" */
+input[type="email"]::placeholder,
+input[type="password"]::placeholder {
+  text-align: left;
+}
+
+
+
+button {
+  width: 100%;
+  padding: 10px;
+  background-color: #4caf50;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f5f5f5;
+}
+
+.container {
+  padding: 30px;
+  box-shadow: 0;
+  background-position: center; /* Centre l'image horizontalement et verticalement */
+  text-align: center;
+}
+
+
+.recherche {
+  margin-bottom: 20px;
+}
+
+.recherche input[type="text"] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  outline: none;
+}
+
+.mots-recyclage {
+  list-style-type: none;
+  padding: 0;
+}
+
+.mots-recyclage li {
+  margin-bottom: 10px;
+}
+
+.mots-recyclage input[type="checkbox"] {
+  margin-right: 10px;
+}
+
+.resultats {
+  list-style-type: none;
+  padding: 0;
+}
+/* Pour le conteneur des explications */
+.explications-container {
+  background-position: center; /* Centre l'image horizontalement et verticalement */
+  text-align: center;
+  max-width: 300px;
+  margin: 20px 100px;
+  padding: 30px;
+}
+.flex-container{
+  background-position: center; /* Centre l'image horizontalement et verticalement */
+  text-align: center;
+  max-width: 300px;
+  margin: 20px 100px;
+  padding: 30px;
+}
+h2 {
+  text-align: center;
+  /* Dégradé de couleur : bleu, jaune, vert */
+  background: linear-gradient(
+          to right,
+          #278eae,
+          hsl(211, 81%, 41%) 1%,
+          rgb(46, 175, 74),
+          #ffcc00
+  );
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-family: "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande",
+    "Lucida Sans", Arial, sans-serif;
+}
+.profile-avatar {
+  width: 150px; /* Largeur de l'avatar */
+  height: 150px; /* Hauteur de l'avatar */
+  border-radius: 50%; /* Arrondir les bords pour obtenir une forme circulaire */
+  overflow: hidden;
+  position: absolute; /* Utiliser une position absolue */
+  top: 60%; /* Positionner l'avatar à 50% de la hauteur du conteneur parent */
+  left: 50%; /* Positionner l'avatar à 50% de la largeur du conteneur parent */
+  transform: translate(-50%, -50%); /* Déplacer l'avatar de moitié de sa propre taille vers le haut et la gauche */
+}
+
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.profile-info {
+  position: absolute;
+  bottom: 280px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+}
+/* CSS pour positionner le menu en bas de la page et l'aligner avec le cadre de recherche */
+/* Styles pour le menu en bas de la page */
+.footer {
+  position: fixed;
+  bottom: 20px;
+  width: 100%;
+  background-color: #45a049;
+  color: white; /* Couleur du texte */
+  text-align: center; /* Alignement du texte au centre */
+  padding: 10px 0; /* Espacement intérieur */
+  box-shadow: 0px -2px 10px rgba(0, 0, 0, 0.1); /* Ombre sous le menu */
+}
+.footer ul li a:hover {
+  color: #ccc;
+}
+
+/* Styles pour les éléments de menu */
+.footer ul {
+  list-style-type: none; /* Supprime les puces de la liste */
+  padding: 0;
+  margin: 0;
+
+}
+
+.footer ul li {
+  display: inline; /* Affiche les éléments en ligne */
+  margin: 0 10px; /* Marge entre les éléments */
+}
+
+.footer ul li:first-child {
+  margin-left: 0; /* Supprime la marge à gauche du premier élément */
+}
+
+.footer ul li:last-child {
+  margin-right: 0; /* Supprime la marge à droite du dernier élément */
+
+}
+
+.footer ul li a {
+  text-decoration: none; /* Supprime les soulignements des liens */
+  color: white; /* Couleur du texte */
+  font-weight: bold; /* Police en gras */
+  font-size: 14px; /* Taille de la police */
+
+
+}
+/* CSS pour le conteneur de la page d'inscription */
+.inscription-container {
+  background-position: center; /* Centre l'image horizontalement et verticalement */
+  text-align: center;
+  padding: 30px;
+  box-shadow: 0;
+}
+
+
+/* Pour l'application */
+.App {
+  text-align: center;
+  background-color: #f7f7f7; /* Couleur de fond */
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+/* Placeholder pour les champs "Adresse e-mail" et "Mot de passe" */
+input[type="email"]::placeholder,
+input[type="password"]::placeholder {
+  text-align: left;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  background-color: #4caf50;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f5f5f5;
+}
+.profile-container {
+  background-position: center; /* Centre l'image horizontalement et verticalement */
+  text-align: center;
+  padding: 100px;
+  box-shadow: 100;
+}
+.explications-container {
+  background-position: center; /* Centre l'image horizontalement et verticalement */
+  text-align: center;
+  padding: 30px;
+  box-shadow: 0;
+}
+.scan-container {
+  background-position: center; /* Centre l'image horizontalement et verticalement */
+  text-align: center;
+  padding: 30px;
+  box-shadow: 0;
+}
+.webcam-container {
+  width: 400px; /* Largeur de la webcam */
+  height: 400px; /* Hauteur de la webcam */
+  overflow: hidden; /* Cacher les parties excédantes de la webcam */
+  border-radius: 10px; /* Bord arrondi */
+  margin-bottom: 10px; /* Marge inférieure */
+}
+
+.scan-button {
+  background-color: #45a04; /* Couleur de fond du bouton */
+  color: #fff; /* Couleur du texte */
+  padding: 10px 20px; /* Espacement intérieur */
+  border: none; /* Pas de bordure */
+  border-radius: 5px; /* Bord arrondi */
+  cursor: pointer; /* Curseur de la souris */
+  transition: background-color 0.3s ease; /* Transition fluide */
+}
+.quiz-container {
+  background-position: center; /* Centre l'image horizontalement et verticalement */
+  text-align: center;
+  padding: 30px;
+  box-shadow: 0;
+}
+/* Style pour aligner les éléments en ligne */
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Centrer horizontalement */
+  align-items: center; /* Centrer verticalement */
+  background-position: center; /* Centre l'image horizontalement et verticalement */
+  text-align: center;
+  padding: 30px;
+  box-shadow: 0;
+
+}
+
+.checkboxes {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Style pour positionner les étiquettes à côté des cases à cocher */
+.checkboxes div {
+  display: flex;
+  align-items: center; /* Alignement vertical */
+}
+
+/* Espace entre la case à cocher et l'étiquette */
+input[type="checkbox"] {
+  margin-right: 10px;
+}
+
+/* Style pour mettre le fond du checkbox en vert */
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #4caf50; /* Bordure verte */
+  border-radius: 3px;
+  background-color: white;
+}
+
+/* Style pour changer la couleur de fond lorsque la case est cochée */
+input[type="checkbox"]:checked {
+  background-color: #4caf50; /* Fond vert */
+}
+.card-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: fixed;
+  bottom: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  right: 100px;
+}
+
+.arrow-button {
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.arrow-button:hover {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.bold {
+  font-weight: bold;
+
+  background-image: linear-gradient(to right,        #278eae,
+  hsl(211, 81%, 41%) 1%,
+  rgb(46, 175, 74),
+  #a68d26);
+  -webkit-background-clip: text; /* Pour les navigateurs basés sur WebKit */
+  color: transparent;
+  background-clip: text;
+
+}
+.icon-position-green .fa-crosshairs {
+  color: green;
+}
+.confirmation-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.confirmation-modal button {
+  margin-top: 10px;
+}
+.auth-buttons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+}
+
+
+.auth-buttons button {
+
+  background-color: #45a049;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  margin-right: 100px; /* Ajoute un espace à droite de chaque bouton */
+}
+
+/* Pour éviter un espace à droite sur le dernier bouton */
+.auth-buttons button:last-child {
+  margin-right: 10px;
+}
+.explications-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.explication-card {
+  background-color: #c8e6c9;
+  border: 1px solid #4caf50;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.explication-mot {
+  color: #4caf50;
+  margin-top: 0;
+}
+
+.explication-recyclage {
+  color: #333;
+}
+.card-display {
+  display: flex;
+  overflow: hidden;
+}
+
+.card-item {
+  flex: 0 0 auto;
+  width: 100%;
+  transition: transform 0.5s ease;
+}
+
+.card-display.flipping .card-item {
+  transform: translateX(-100%);
+
+}
+.card-display {
+  border: 2px solid darkolivegreen; /* Définir la bordure des cartes en noir */
+}

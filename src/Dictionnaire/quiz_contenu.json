@@ -1,0 +1,75 @@
+{
+  "questions_liste": [
+    {
+      "question": "Question 1 : Combien de temps faut-il à un sac plastique abandonné dans la nature pour se décomposer ?",
+      "reponse_1": ["100 ans", false],
+      "reponse_2": ["450 ans", true],
+      "reponse_3": ["750 ans", false],
+      "explications": "Un sac plastique met 450 ans à se décomposer. À titre de comparaison, si  les premières pommes de terre venues du Pérou étaient arrivées en  Espagne dans des sacs plastiques, ces derniers auraient disparu  seulement cette année."
+    },
+    {
+      "question": "Question 2 : À partir de quel objet de la vie courante peut-on fabriquer un pull en polaire ?",
+      "reponse_1": ["Une bouteille en plastique", true],
+      "reponse_2": ["Un vieux journal", false],
+      "reponse_3": ["Aucun", false],
+      "explications": "Les fibres polaires peuvent être fabriquées à partir du PET, un type de  plastique que l’on retrouve dans les bouteilles d’eau et certains  emballages alimentaires. Ce plastique est fondu puis étiré pour être  transformé en fibre. Il faut par exemple une vingtaine de bouteilles  d’eau gazeuse pour faire un pull."
+    },
+    {
+      "question": "Question 3 : Combien de kilos de déchets produit un Français, en moyenne, par an ?",
+      "reponse_1": ["374 kg", false],
+      "reponse_2": ["590 kg", true],
+      "reponse_3": ["752 kg", false],
+      "explications": "Selon l’Ademe, un Français produit en moyenne 590 kg de déchets par an, à  la fois des déchets courants et des « encombrants ». C’est deux fois  plus qu’il y a 40 ans."
+    },
+    {
+      "question": "Question 4 : Lesquels de ces articles ne peuvent pas être recyclés ?",
+      "reponse_1": ["Les pots de yaourt", true],
+      "reponse_2": ["Les canettes vides", false],
+      "reponse_3": ["Les magasines", false],
+      "explications": "Les pots de yaourt, mais aussi tous les petits emballages en plastique qui sont « souillés » ne sont pour l’instant pas recyclés partout en France. En effet, la quantité de plastique est trop faible et nombre de  centres de tri ne sont pas équipés pour ce recyclage. Les pots de yaourt doivent généralement être jetés avec les ordures ménagères."
+    },
+    {
+      "question": "Question 5 : Combien de fois peut-on recycler le verre ?",
+      "reponse_1": ["10 fois", false],
+      "reponse_2": ["100 fois", false],
+      "reponse_3": ["Indéfiniment", true],
+      "explications": "Le verre peut être recyclé à l’infini, et le geste pour le trier est  l’un des plus simple. Attention toutefois, le verre « culinaire », comme  les plats et les assiettes, est rarement du verre et ne doit pas être  mélangé avec les bouteilles. Il s’agit de céramique transparente, qui ne  se recycle pas de la même manière."
+    },
+    {
+      "question": "Question 6 : Que deviennent les déchets ménagers non recyclables ?",
+      "reponse_1": ["Ils sont jetés dans la mer", false],
+      "reponse_2": ["Ils sont envoyés sur Mars", false],
+      "reponse_3": ["Ils sont enfouis ou incinérés et permettent de produire de l'électricité", true],
+      "explications": "Ces déchets, comme les résidus alimentaires et les emballages non  recyclables, sont soit enfouis soit incinérés. Ces deux solutions ont un  impact environnemental et de potentielles conséquences sur la santé. L’incinération permet toutefois de récupérer la chaleur produite pour  alimenter un réseau de chauffage ou générer de l’électricité."
+    },
+    {
+      "question": "Question 7 : Peut-on recycler tous les papiers ?",
+      "reponse_1": ["Non, on ne peut pas recycler le papier toilette", false],
+      "reponse_2": ["Oui, à quelques exceptions près comme le papier qui a été en contact avec de la nourriture, le papier photo et le papier peint", true],
+      "reponse_3": ["Oui, tous les papiers sont recyclables", false],
+      "explications": "La très grande majorité des papiers et cartons sont recyclables, mais  pas tous. Les déchets papiers qui ont été en contact avec de la  nourriture ou des solvants particuliers ne doivent pas être jetés dans  la poubelle dédiée au papier et cartons. À noter que le papier, issu de  la cellulose, ne peut être recyclé qu’un certain nombre de fois avant  dégradation de cette fibre végétale, en moyenne au bout de cinq  utilisations."
+    },
+    {
+      "question": "Question 8 : Quelle quantité d’aliments encore emballés est jetée chaque année en France, par personne ?",
+      "reponse_1": ["3 kg", false],
+      "reponse_2": ["7 kg", true],
+      "reponse_3": ["12 kg", false],
+      "explications": "Selon l’Ademe, chaque Français jette en moyenne 7 kg d’aliments encore emballés par an. À ce gaspillage alimentaire pur et simple s’ajoutent  encore 13 kg de restes de repas, de pain non consommé et d’aliments abîmés."
+    },
+    {
+      "question": "Question 9 : Les piles sont-elles recyclables ?",
+      "reponse_1": ["Oui, mais sous certaines conditions", true],
+      "reponse_2": ["Oui, comme n’importe quel autre déchet", false],
+      "reponse_3": ["Non, elles sont enfouies comme les déchets nucléaires", false],
+      "explications": "Les métaux présents dans les piles et accumulateurs peuvent être  recyclés dans certains centres spécialisés, via des fours particuliers  et des traitements chimiques et physiques. On dénombre moins d’une dizaine de centres de ce type en France. Au final, jusqu’à 80 % d’une pile peut être recyclé si celle-ci est déposée dans les bacs prévus à  cet effet."
+    },
+    {
+      "question": "Question 10 : Où va la vaisselle de plastique jetable?",
+      "reponse_1": ["Dans un centre de recyclage", false],
+      "reponse_2": ["À la poubelle", true],
+      "reponse_3": ["Dans un centre de recyclage", false],
+      "explications": "Bien qu’elle soit en plastique, ce type de vaisselle est jetable, car elle est faite de plastique no.6; le seul qui est non recyclable. C’est pourquoi l’idéal est de prioriser la vaisselle en carton ou en plastique compostable que vous pourrez mettre au compost."
+    }
+  ],
+  "score": 0
+}
