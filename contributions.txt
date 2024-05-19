@@ -1,5 +1,6 @@
-manelsdn:
-wejhelal:
-Youmna09:
-Fatinemourid:
-Sar00a:
+manelsdn: s'est occupée du dossier Identification
+wejhelal: S'est occupée du dossier GPS
+Youmna09:s'est occupée du dossier Dictionnaire
+Fatinemourid: S'est occupée du dossier Scan
+Sar00a:  S'est occupée du dossier Cartes
+Le reste des fichiers sont réalisés par nous toutes. 
