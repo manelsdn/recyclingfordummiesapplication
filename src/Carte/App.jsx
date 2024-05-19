@@ -7,7 +7,7 @@ import Carder from './Carder.jsx';
 import Cardr1 from './Cardr1.jsx';
 import Cardr2 from './Cardr2.jsx';
 import Cardr3 from './Cardr3.jsx';
-
+/* Pour la partie carousel j'ai utilisé le model sur https://www.npmjs.com/package/react-multi-carousel*/
 function CartePage() {
   const responsive = {
     superLargeDesktop: {
